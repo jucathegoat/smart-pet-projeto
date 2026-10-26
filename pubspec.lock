@@ -199,18 +199,32 @@ packages:
     dependency: "direct main"
     description:
       name: mysql1
+<<<<<<< HEAD
       sha256: "675420b1b19fd076b55483df00dce2c156e6127a99fa483e61b937722360b2e6"
       url: "https://pub.dev"
     source: hosted
     version: "0.22.0"
+=======
+      sha256: "9b371487876be9404290df3af4521c5f7bc7f8bee8415a17bc88cbb03c87dc11"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.21.1"
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
   oracledb:
     dependency: "direct main"
     description:
       name: oracledb
+<<<<<<< HEAD
       sha256: "430045e21ee6064a75a005f4096a5166f4a27f36e335b4c3a17ee19bc5f9b1a7"
       url: "https://pub.dev"
     source: hosted
     version: "1.6.0"
+=======
+      sha256: "0ca4ff10c7ba127f0a5baf17bf892186fb2218e71da06363f181ded363a9332c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
   path:
     dependency: transitive
     description:
@@ -239,18 +253,32 @@ packages:
     dependency: "direct main"
     description:
       name: shelf
+<<<<<<< HEAD
       sha256: e75e9cf311d7fd712048038cc17c25199c38536c20330d53e7db058b543d5a48
       url: "https://pub.dev"
     source: hosted
     version: "1.4.3"
+=======
+      sha256: e7dd780a7ffb623c57850b33f43309312fc863fb6aa3d276a754bb299839ef12
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.2"
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
   shelf_router:
     dependency: "direct main"
     description:
       name: shelf_router
+<<<<<<< HEAD
       sha256: "2b3eb66f2e7651c9f0af28538e0de53bc02dc102d965d55b13e6ffceafad10e3"
       url: "https://pub.dev"
     source: hosted
     version: "1.1.5"
+=======
+      sha256: f5e5d492440a7fb165fe1e2e1a623f31f734d3370900070b2b1e0d0428d59864
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.4"
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
   sky_engine:
     dependency: transitive
     description: flutter
@@ -324,10 +352,17 @@ packages:
     dependency: transitive
     description:
       name: vm_service
+<<<<<<< HEAD
       sha256: "89b11d62e1040ee681af3b4f1c97a803ecbf010c6e8b9c5896ee5b08c3bf7b78"
       url: "https://pub.dev"
     source: hosted
     version: "15.4.0"
+=======
+      sha256: "5f37239c4851efcef929cea7824e76df7f2f0970aef85d66bbc430afa40e72f0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "15.3.0"
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
   web:
     dependency: transitive
     description:

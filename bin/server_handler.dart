@@ -1,4 +1,8 @@
 import 'dart:convert';
+<<<<<<< HEAD
+=======
+
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -34,12 +38,17 @@ class ServerHandler {
       if (usuario == 'admin' && senha == '123') {
         Map result = {'token': 'token123', 'user_id': 1};
         String jsonResponse = jsonEncode(result);
+<<<<<<< HEAD
         return Response.ok(jsonResponse, headers: {'content-type': 'application/json'});
+=======
+        return Response.ok(jsonResponse,headers: {'content-type':'application/json'});
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
       } else {
         return Response.forbidden("Acesso negado");
       }
     });
 
+<<<<<<< HEAD
     // ============================================================
     // ROTAS DE AVALIAÇÃO (Integradas com o aplicativo Flutter)
     // ============================================================
@@ -87,3 +96,8 @@ class ServerHandler {
     return router;
   }
 }
+=======
+    return router;
+  }
+}
+>>>>>>> 7333d723ef7b14824117c04d411392e18f299962
