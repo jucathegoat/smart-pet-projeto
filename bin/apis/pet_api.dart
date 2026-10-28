@@ -58,10 +58,17 @@ class PetApi extends Api {
           body: jsonEncode({'erro': 'JSON ou CPF inválido.'}),
           headers: {'content-type': 'application/json'},
         );
-      } catch (e) {
+      } catch (e, stackTrace) {
+        print('ERRO AO CADASTRAR PET: $e');
+        print(stackTrace);
+
         return Response(
           500,
-          body: jsonEncode({'erro': 'Erro ao cadastrar o pet.'}),
+          body: jsonEncode({
+            'sucesso': false,
+            'erro': 'Erro ao cadastrar o pet.',
+            'detalhes': e.toString(),
+          }),
           headers: {'content-type': 'application/json'},
         );
       }

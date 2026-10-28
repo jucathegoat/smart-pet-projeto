@@ -41,10 +41,7 @@ dependencies:
   http: ^1.6.0
   shelf_router: ^1.1.4
   dart_jsonwebtoken: ^3.4.1
-<<<<<<< HEAD
   flutter_dotenv: ^6.0.1
-=======
->>>>>>> e57528aa46cecb39b54fb4e3bb9bed4bcdeb19b3
 
 dev_dependencies:
   flutter_test:

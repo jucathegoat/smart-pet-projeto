@@ -94,7 +94,7 @@ class _TelaInicialState extends State<TelaInicial> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TelaAgendamento(),
+                    builder: (context) =>  TelaAgendamento(cpf: widget.cpf),
                   ),
                 );
               },

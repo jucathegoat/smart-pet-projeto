@@ -10,10 +10,16 @@ import '../database/db_configuration.dart';
 import '../database/mysql_db_configuration.dart';
 import '../../dao/usuario_dao.dart';
 import '../../dao/pet_dao.dart';
+import '../../dao/servico_dao.dart';
+import '../../dao/agendamento_dao.dart';
 import '../../services/usuario_service.dart';
 import '../../services/pet_service.dart';
+import '../../services/servico_service.dart';
+import '../../services/agendamento_service.dart';
 import '../../apis/usuario_api.dart';
 import '../../apis/pet_api.dart';
+import '../../apis/servicos_api.dart';
+import '../../apis/agendamento_api.dart';
 
 class Injects {
   static DependencyInjector initialize() {
@@ -40,6 +46,14 @@ class Injects {
     di.register<PetDao>(()=> PetDao(di<DbConfiguration>()));
     di.register<PetService>(()=>PetService(petDao: di<PetDao>()));
     di.register<PetApi>(()=> PetApi(di<PetService>()));
+
+    di.register<ServicoDao>(()=> ServicoDao(di<DbConfiguration>()));
+    di.register<ServicoService>(()=>ServicoService(servicoDao: di<ServicoDao>()));
+    di.register<ServicosApi>(()=> ServicosApi(di<ServicoService>()));
+
+    di.register<AgendamentoDao>(()=> AgendamentoDao(di<DbConfiguration>()));
+    di.register<AgendamentoService>(()=>AgendamentoService(agendamentoDao: di<AgendamentoDao>()));
+    di.register<AgendamentoApi>(()=> AgendamentoApi(di<AgendamentoService>()));
     return di;
   }
 }

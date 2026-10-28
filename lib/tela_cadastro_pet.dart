@@ -109,8 +109,8 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                         Color.fromARGB(255, 26, 58, 27),
                       ),
                     ),
-                    onPressed: () {
-                      cadastrarPet();
+                    onPressed: () async{
+                      await cadastrarPet();
                       Navigator.push(context,
                       MaterialPageRoute(builder: (builder) => TelaPets(cpf: widget.cpf)));
                     },

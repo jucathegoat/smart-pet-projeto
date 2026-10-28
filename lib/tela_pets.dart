@@ -1,7 +1,8 @@
-
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import 'tela_cadastro_pet.dart';
 
 class TelaPets extends StatefulWidget {
@@ -18,7 +19,6 @@ class _TelaPetsState extends State<TelaPets> {
   bool carregando = true;
   String? erro;
 
-  // Ajuste a porta para a porta em que sua API está rodando.
   final String baseUrl = 'http://localhost:8080';
 
   @override
@@ -71,13 +71,26 @@ class _TelaPetsState extends State<TelaPets> {
   Future<void> abrirCadastro() async {
     final cadastrado = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(
-        builder: (context) => TelaCadastroPet(cpf: widget.cpf),
-      ),
+      MaterialPageRoute(builder: (context) => TelaCadastroPet(cpf: widget.cpf)),
     );
 
     if (cadastrado == true) {
       await carregarPets();
+    }
+  }
+
+  Future<void> deletarPet(int codigoPet) async {
+    var url = Uri.parse('http://localhost:8080/deletar/pet/$codigoPet');
+    var resposta = await http.delete(url);
+
+    if (!mounted) return;
+
+    if (resposta.statusCode == 204 || resposta.statusCode == 200) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Pet excluído com sucesso!')));
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Erro ao excluir pet')));
     }
   }
 
@@ -93,9 +106,7 @@ class _TelaPetsState extends State<TelaPets> {
         child: Builder(
           builder: (context) {
             if (carregando) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (erro != null) {
@@ -139,9 +150,71 @@ class _TelaPetsState extends State<TelaPets> {
                         'Espécie: ${pet['especie'] ?? 'Não informada'}\n'
                         'Idade: ${pet['idade'] ?? 'Não informada'}',
                       ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: null,
+                      trailing: Wrap(
+                        direction: Axis.vertical,
+                        spacing: 4,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Confirmar exclusão"),
+                                  content: const Text(
+                                    "Tem certeza que deseja deletar este pet?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      child: const Text("Cancelar"),
+                                      onPressed: () {
+                                        Navigator.of(context)
+                                            .pop(); // fecha o dialog
+                                      },
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(
+                                          255,
+                                          26,
+                                          58,
+                                          27,
+                                        ), // botão vermelho
+                                      ),
+                                      child: const Text(
+                                        "Deletar",
+                                        style: TextStyle(
+                                          color: Color.fromARGB(
+                                            255,
+                                            246,
+                                            247,
+                                            246,
+                                          ),
+                                        ),
+                                      ),
+
+                                      onPressed: () async {
+                                        final id =
+                                            pet['codigoPet']
+                                                as int;
+                                        await deletarPet(
+                                          id,
+                                        );
+                                        carregarPets;
+                                        Navigator.of(context)
+                                            .pop(); 
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: null,
+                            icon: const Icon(Icons.edit_outlined),
+                          ),
+                        ],
                       ),
                     ),
                   );
@@ -154,9 +227,10 @@ class _TelaPetsState extends State<TelaPets> {
       floatingActionButton: FloatingActionButton(
         onPressed: abrirCadastro,
         shape: const CircleBorder(
-          side: BorderSide(color: Colors.black, width: 2),
+          side: BorderSide(color: Color.fromARGB(255, 248, 248, 248), width: 2),
         ),
-        child: const Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

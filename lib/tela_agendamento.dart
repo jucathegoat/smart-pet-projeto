@@ -1,92 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/tela_novo_agendamento.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TelaAgendamento extends StatefulWidget {
-  const TelaAgendamento({super.key});
+  const TelaAgendamento({super.key, required this.cpf});
+
+final String cpf;
 
   @override
-  State<TelaAgendamento> createState() => _TelaAgendamentoState();
+  TelaAgendamentoState createState() => TelaAgendamentoState();
 }
 
-class _TelaAgendamentoState extends State<TelaAgendamento> {
-  final _petController = TextEditingController();
-  DateTime? _dataSelecionada;
-  TimeOfDay? _horaSelecionada;
+class TelaAgendamentoState extends State<TelaAgendamento> {
+  List<dynamic> agendamentos = [];
+  bool carregando = true;
+  String? erro;
 
-  Future<void> _selecionarData() async {
-    final data = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (data != null) {
-      setState(() => _dataSelecionada = data);
-    }
+  final String baseUrl = 'http://localhost:8080';
+
+  @override
+  void initState() {
+    super.initState();
+    carregarAgendamentos();
   }
 
-  Future<void> _selecionarHora() async {
-    final hora = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (hora != null) {
-      setState(() => _horaSelecionada = hora);
-    }
-  }
+  Future<void> carregarAgendamentos() async {
+    setState(() {
+      carregando = true;
+      erro = null;
+    });
 
-  void _confirmarAgendamento() {
-    if (_petController.text.isEmpty || _dataSelecionada == null || _horaSelecionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha todos os campos')),
+    try {
+      final resposta = await http.get(
+        Uri.parse('${baseUrl}/agendamentos/${widget.cpf}'),
       );
-      return;
+
+      if (resposta.statusCode == 200) {
+        final dados = jsonDecode(resposta.body);
+
+        if (dados['sucesso'] == true) {
+          setState(() {
+            agendamentos = dados['agendamentos'] ?? [];
+          });
+        } else {
+          setState(() {
+            erro = 'Não foi possível carregar seus agendamentos.';
+          });
+        }
+      } else {
+        setState(() {
+          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        erro = 'Não foi possível conectar à API.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          carregando = false;
+        });
+      }
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Agendamento realizado!')),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Agendamento')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _petController,
-              decoration: const InputDecoration(labelText: 'Nome do pet'),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _selecionarData,
-                    child: Text(_dataSelecionada == null
-                        ? 'Escolher data'
-                        : '${_dataSelecionada!.day}/${_dataSelecionada!.month}/${_dataSelecionada!.year}'),
-                  ),
+      appBar: AppBar(
+        title: const Text('Agendamentos'),
+        backgroundColor: Color.fromARGB(255, 249, 243, 243),
+        foregroundColor: Colors.black,
+      ),
+     body: SafeArea(
+        child: Builder(
+          builder: (context) {
+            if (carregando) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (erro != null) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(erro!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: carregarAgendamentos,
+                      child: const Text('Tentar novamente'),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _selecionarHora,
-                    child: Text(_horaSelecionada == null
-                        ? 'Escolher hora'
-                        : _horaSelecionada!.format(context)),
-                  ),
+              );
+            }
+
+            if (agendamentos.isEmpty) {
+              return const Center(
+                child: Text(
+                  'Não há nenhum agendamento',
+                  textAlign: TextAlign.center,
                 ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _confirmarAgendamento,
-              child: const Text('Confirmar agendamento'),
-            ),
-          ],
+              );
+            }
+
+            return RefreshIndicator(
+              onRefresh: carregarAgendamentos,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: agendamentos.length,
+                itemBuilder: (context, index) {
+                  final agendamento = agendamentos[index];
+
+                  return Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.pets),
+                      title: Text(agendamento['nome_pet'] ?? 'Sem nome'),
+                      subtitle: Text(
+                        'especialidade: ${agendamento['especialidade'] ?? 'Não informada'}\n'
+                        'data: ${agendamento['data'] ?? 'Não informada'}\n'
+                        'hora: ${agendamento['hora'] ?? 'Não informada'}',
+                      ),
+                      trailing: Wrap(
+                        direction: Axis.vertical,
+                        spacing: 4,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TelaNovoAgendamento(cpf: widget.cpf),
+            ),
+          );
+        },
+        shape: CircleBorder(
+          side: BorderSide(
+            color: Colors.black,
+            width: 2.0,
+          ),
+        ),
+        child: Icon(Icons.add),
       ),
     );
   }

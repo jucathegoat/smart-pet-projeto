@@ -18,20 +18,30 @@ class PetDao implements Dao<PetModel> {
   }
 
 Future<bool> deletePet(int codigoPet) async {
-  // Apaga vínculos na tabela filha
-  await _execQuery(
-    'DELETE FROM tutela WHERE codigo_pet = ?;',
-    [codigoPet],
-  );
+  try {
+    await _execQuery(
+      'DELETE FROM tutela WHERE codigo_pet = ?;',
+      [codigoPet],
+    );
 
-  // Agora apaga o pet
-  final result = await _execQuery(
-    'DELETE FROM pet WHERE codigo_pet = ?;',
-    [codigoPet],
-  );
+    await _execQuery(
+      'DELETE FROM agenda WHERE codigo_pet = ?;',
+      [codigoPet],
+    );
 
-  return result.affectedRows > 0;
+    final result = await _execQuery(
+      'DELETE FROM pet WHERE codigo_pet = ?;',
+      [codigoPet],
+    );
+
+    return result.affectedRows > 0;
+
+  } catch (e) {
+    print("Erro ao deletar pet: $e");
+    return false;
+  }
 }
+
 
 
   Future<bool> createWithTutor(PetModel value, String cpfTutor) async {

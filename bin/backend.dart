@@ -7,6 +7,8 @@ import 'infra/middleware_interception.dart';
 import 'infra/dependency_injector/injects.dart';
 import 'apis/usuario_api.dart';
 import 'apis/pet_api.dart';
+import 'apis/servicos_api.dart';
+import 'apis/agendamento_api.dart';
 
 void main() async {
   CustomEnv.fromFile('.env-dev');
@@ -18,6 +20,8 @@ void main() async {
       .add(_di.get<BlogApi>().getHandler())
       .add(_di.get<UsuarioApi>().getHandler())
       .add(_di.get<PetApi>().getHandler())
+      .add(_di.get<ServicosApi>().getHandler())
+      .add(_di.get<AgendamentoApi>().getHandler())
       .handler;
 
   var handler = Pipeline()
