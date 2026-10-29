@@ -123,7 +123,7 @@ class _TelaInicialState extends State<TelaInicial> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TelaAvaliacao(),
+                    builder: (context) => const TelaAvaliacao(servicoId: 1),
                   ),
                 );
               },
