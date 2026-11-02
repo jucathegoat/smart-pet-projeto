@@ -107,6 +107,54 @@ class PetApi extends Api {
       }
     });
 
+    router.put('/atualizar/pet', (Request req) async {
+      try {
+        final body = await req.readAsString();
+
+        if (body.isEmpty) {
+          return Response(
+            400,
+            body: jsonEncode({'erro': 'O corpo da requisição está vazio.'}),
+          );
+        }
+
+        final data = jsonDecode(body) as Map<String, dynamic>;
+
+        final pet = PetModel.fromRequest(data);
+
+        final sucessoAtualizacao = await _petService.update(pet);
+
+        if (sucessoAtualizacao) {
+          return Response.ok(
+            jsonEncode({
+              'sucesso': true,
+              'mensagem': 'Pet atualizado com sucesso!',
+            }),
+            headers: {'content-type': 'application/json'},
+          );
+        } else {
+          return Response.notFound(
+            jsonEncode({
+              'sucesso': false,
+              'mensagem': 'Pet não encontrado para atualização.',
+            }),
+            headers: {'content-type': 'application/json'},
+          );
+        }
+      } catch (e, stackTrace) {
+        print('ERRO AO ATUALIZAR PET: $e');
+        print(stackTrace);
+
+        return Response.internalServerError(
+          body: jsonEncode({
+            'sucesso': false,
+            'erro': 'Erro ao atualizar o pet.',
+            'detalhes': e.toString(),
+          }),
+          headers: {'content-type': 'application/json'},
+        );
+      }
+    });
     return creatHandler(
       router: router,
       isSecurity: isSecurity,

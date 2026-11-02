@@ -98,7 +98,7 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Nº Documento",
-                  hintText: "Digite o nº Documento do seu pet (deixe em branco se ainda não hover)",
+                  hintText: "Digite o nº Documento do seu pet",
                 ),
               ),
               SizedBox(height: 10),

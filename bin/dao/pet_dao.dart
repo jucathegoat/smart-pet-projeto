@@ -138,8 +138,8 @@ class PetDao implements Dao<PetModel> {
   @override
   Future<bool> update(PetModel value) async {
     var result = await _execQuery(
-      'UPDATE pet set nome = ?, especie = ? where codigo_pet = ? ',
-      [value.nome, value.especie, value.idade],
+      'UPDATE pet set peso = ?, n_documento = ?, idade = ? where codigo_pet = ? ',
+      [value.peso, value.nDocumento, value.idade, value.codigoPet],
     );
     return result.affectedRows > 0;
   }

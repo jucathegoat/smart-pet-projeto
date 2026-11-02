@@ -43,6 +43,14 @@ class AgendamentoApi extends Api {
       return Response.ok(jsonEncode({'sucesso': true, 'agendamentos': agendamentos}));
     });
 
+    router.put('/atualizar/agendamento', (Request req) async {
+      var body = await req.readAsString();
+      if (body.isEmpty) return Response(400);
+      var agendamento = AgendamentoModel.fromRequest(jsonDecode(body));
+      var result = await _agendamentoService.update(agendamento);
+      return result ? Response(200) : Response(500);
+    });
+
 
     return creatHandler(
       router: router,

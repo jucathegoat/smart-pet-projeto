@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'tela_cadastro_pet.dart';
+import 'tela_edicao_pet.dart';
 
 class TelaPets extends StatefulWidget {
   const TelaPets({super.key, required this.cpf});
@@ -152,12 +153,26 @@ class _TelaPetsState extends State<TelaPets> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                pet['nome'] ?? 'Sem nome',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                              Align(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      pet['nome'] ?? 'Sem nome',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      pet['n_documento'] ?? 'Sem nº Documento',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               Row(
@@ -167,14 +182,19 @@ class _TelaPetsState extends State<TelaPets> {
                                       Icons.edit_outlined,
                                       color: Colors.blueAccent,
                                     ),
-                                    onPressed: () {
-                                      // ação de editar
+                                    onPressed: () async {
+                                      final id = pet['codigoPet'] as int;
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              TelaEdicaoPet(codigoPet: id),
+                                        ),
+                                      );
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                    ),
+                                    icon: const Icon(Icons.delete),
                                     onPressed: () => showDialog(
                                       context: context,
                                       builder: (BuildContext context) {
@@ -193,12 +213,19 @@ class _TelaPetsState extends State<TelaPets> {
                                             ),
                                             ElevatedButton(
                                               style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Color.fromARGB(255, 26, 58, 27),
+                                                backgroundColor: Color.fromARGB(
+                                                  255,
+                                                  26,
+                                                  58,
+                                                  27,
+                                                ),
                                               ),
-                                              child: const Text("Deletar",
-                                                  style: TextStyle(
-                                                      color: Colors.white)),
+                                              child: const Text(
+                                                "Deletar",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
                                               onPressed: () async {
                                                 final id =
                                                     pet['codigoPet'] as int;
@@ -223,6 +250,7 @@ class _TelaPetsState extends State<TelaPets> {
                           ),
                           Text('🦴 Raça: ${pet['raca'] ?? 'Não informada'}'),
                           Text('📏 Porte: ${pet['porte'] ?? 'Não informada'}'),
+                          Text('⚖️ Peso: ${pet['peso'] ?? 'Não informada'}'),
                           Text('🎂 Idade: ${pet['idade'] ?? 'Não informada'}'),
                         ],
                       ),

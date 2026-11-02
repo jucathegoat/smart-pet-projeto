@@ -25,7 +25,7 @@ class AgendamentoService implements GenericService<AgendamentoModel> {
     }
   }
 
- 
+ Future<bool> update(AgendamentoModel value) async => _agendamentoDao.update(value);
 
   Future<bool> criarAgendameto(AgendamentoModel value) async => _agendamentoDao.criarAgendameto(value);
   Future<List<Map<String, dynamic>>>  findByTutor(String cpfTutor) async => _agendamentoDao.findByTutor(cpfTutor);

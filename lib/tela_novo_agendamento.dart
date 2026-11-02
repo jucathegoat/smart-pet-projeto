@@ -63,6 +63,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
       "pet": int.parse(petSelecionado!),
       "data": dataController.text,
       "hora": horaController.text,
+      "status": "Em andamento",
     };
 
     try {

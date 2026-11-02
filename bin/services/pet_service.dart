@@ -33,4 +33,6 @@ class PetService implements GenericService<PetModel> {
 }
 
 Future<bool> deletePet(int codigoPet) async => _petDao.deletePet(codigoPet);
+
+Future<bool> update(PetModel value) async => _petDao.update(value);
 }

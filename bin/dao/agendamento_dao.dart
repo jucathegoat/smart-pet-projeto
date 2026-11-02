@@ -17,8 +17,8 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
 
     await connection.transaction((txn) async {
       final result = await txn.query(
-        'INSERT INTO agenda (codigo_servico, cpf, data_agendamento, hora_agendamento, codigo_pet) VALUES (?, ?, ?, ?, ?)',
-        [value.servico, value.cpf, value.data, value.hora, value.pet],
+        'INSERT INTO agenda (codigo_servico, cpf, data_agendamento, hora_agendamento, codigo_pet, status) VALUES (?, ?, ?, ?, ?, ?)',
+        [value.servico, value.cpf, value.data, value.hora, value.pet, value.status],
       );
     });
 
@@ -56,8 +56,8 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
   @override
   Future<bool> update(AgendamentoModel value) async {
     var result = await _execQuery(
-      'UPDATE agenda set cpf = ?, data_agendamento = ?, hora_agendamento = ?, codigo_servico = ?, codigo_pet = ?',
-      [value.cpf, value.data, value.hora, value.servico, value.pet],
+      'UPDATE agenda set status = ? where id_agenda = ?',
+      [value.status, value.idagenda],
     );
     return result.affectedRows > 0;
   }
@@ -74,7 +74,8 @@ SELECT
     s.categoria,
     a.data_agendamento,
     a.hora_agendamento,
-    a.status
+    a.status,
+    a.id_agenda
 FROM pet AS p
 INNER JOIN tutela AS t
     ON t.codigo_pet = p.codigo_pet
@@ -108,6 +109,7 @@ return result.map<Map<String, dynamic>>((row) {
     'data': dataFormatada,
     'hora': horaFormatada,
     'status': status,
+    'idagenda': row['id_agenda'],
   };
 }).toList();
 

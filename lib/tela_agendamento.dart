@@ -67,6 +67,15 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     }
   }
 
+  Future<void> cancelarAgendamentos(int idagenda) async {
+    var url = Uri.parse('http://localhost:8080/atualizar/agendamento');
+    var resposta = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'idagenda': idagenda, 'status': 'Cancelado'}),
+    );
+  }
+
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case 'em andamento':
@@ -74,7 +83,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
       case 'concluído':
         return Colors.green;
       case 'cancelado':
-        return Colors.red;
+        return Colors.grey;
       default:
         return Colors.grey;
     }
@@ -87,7 +96,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
       case 'concluído':
         return Colors.green.shade100;
       case 'cancelado':
-        return Colors.red.shade100;
+        return Colors.grey.shade200;
       default:
         return Colors.grey.shade200;
     }
@@ -209,7 +218,12 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                               alignment: Alignment.centerRight,
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(255, 26, 58, 27),
+                                  backgroundColor: Color.fromARGB(
+                                    255,
+                                    26,
+                                    58,
+                                    27,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(20),
                                   ),
@@ -222,9 +236,51 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                                   "Cancelar",
                                   style: TextStyle(color: Colors.white),
                                 ),
-                                onPressed: () {
-                                  // lógica para cancelar o agendamento
-                                },
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text("Confirmação"),
+                                      content: const Text(
+                                        "Tem certeza que deseja cancelar este agendamento?",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text("Não"),
+                                        ),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Color.fromARGB(
+                                              255,
+                                              26,
+                                              58,
+                                              27,
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "Sim",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          onPressed: () async {
+                                            int idagenda =
+                                                agendamento['idagenda'];
+
+                                            await cancelarAgendamentos(
+                                              idagenda,
+                                            );
+                                            carregarAgendamentos();
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                         ],
