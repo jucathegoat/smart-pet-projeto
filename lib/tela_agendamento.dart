@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/tela_novo_agendamento.dart';
 import 'package:http/http.dart' as http;
+
 import 'dart:convert';
 
 class TelaAgendamento extends StatefulWidget {
   const TelaAgendamento({super.key, required this.cpf});
 
-final String cpf;
+  final String cpf;
 
   @override
   TelaAgendamentoState createState() => TelaAgendamentoState();
@@ -66,15 +67,36 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     }
   }
 
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'em andamento':
+        return Colors.orange;
+      case 'concluído':
+        return Colors.green;
+      case 'cancelado':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _statusBackground(String status) {
+    switch (status.toLowerCase()) {
+      case 'em andamento':
+        return Colors.orange.shade100;
+      case 'concluído':
+        return Colors.green.shade100;
+      case 'cancelado':
+        return Colors.red.shade100;
+      default:
+        return Colors.grey.shade200;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agendamentos'),
-        backgroundColor: Color.fromARGB(255, 249, 243, 243),
-        foregroundColor: Colors.black,
-      ),
-     body: SafeArea(
+      body: SafeArea(
         child: Builder(
           builder: (context) {
             if (carregando) {
@@ -115,17 +137,97 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                   final agendamento = agendamentos[index];
 
                   return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.pets),
-                      title: Text(agendamento['nome_pet'] ?? 'Sem nome'),
-                      subtitle: Text(
-                        'especialidade: ${agendamento['especialidade'] ?? 'Não informada'}\n'
-                        'data: ${agendamento['data'] ?? 'Não informada'}\n'
-                        'hora: ${agendamento['hora'] ?? 'Não informada'}',
-                      ),
-                      trailing: Wrap(
-                        direction: Axis.vertical,
-                        spacing: 4,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: const Color.fromARGB(255, 249, 243, 243),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Cabeçalho com nome e status
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.pets, color: Colors.indigo),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    agendamento['nome_pet'] ?? 'Sem nome',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // Badge de status
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _statusBackground(
+                                    agendamento['status'] ?? '',
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  agendamento['status'] ?? 'Pendente',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: _statusColor(
+                                      agendamento['status'] ?? '',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "🛁 Especialidade: ${agendamento['nome_servico'] ?? 'Não informada'}",
+                          ),
+                          Text(
+                            "📅 Data: ${agendamento['data'] ?? 'Não informada'}",
+                          ),
+                          Text(
+                            "⏰ Hora: ${agendamento['hora'] ?? 'Não informada'}",
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Botão de cancelar só aparece se status == "Em andamento"
+                          if ((agendamento['status'] ?? '').toLowerCase() ==
+                              'em andamento')
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color.fromARGB(255, 26, 58, 27),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: Colors.white,
+                                ),
+                                label: const Text(
+                                  "Cancelar",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  // lógica para cancelar o agendamento
+                                },
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   );
@@ -144,15 +246,10 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
             ),
           );
         },
-        shape: CircleBorder(
-          side: BorderSide(
-            color: Colors.black,
-            width: 2.0,
-          ),
-        ),
-        child: Icon(Icons.add),
+        shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
+        child: Icon(Icons.add, color: Colors.white),
+        backgroundColor: Color.fromARGB(255, 26, 58, 27),
       ),
-
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'package:mysql1/mysql1.dart';
-
 import '../models/agendamento_model.dart';
 import 'dao.dart';
 import '../infra/database/db_configuration.dart';
@@ -19,8 +17,8 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
 
     await connection.transaction((txn) async {
       final result = await txn.query(
-        'INSERT INTO agenda (cpf, data_agendamento, hora_agendamento, codigo_servico, codigo_pet) VALUES (?, ?, ?, ?, ?)',
-        [value.cpf, value.data, value.hora, value.servico, value.pet],
+        'INSERT INTO agenda (codigo_servico, cpf, data_agendamento, hora_agendamento, codigo_pet) VALUES (?, ?, ?, ?, ?)',
+        [value.servico, value.cpf, value.data, value.hora, value.pet],
       );
     });
 
@@ -29,13 +27,13 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
 
   @override
   Future<bool> delete(int id) async {
-    var result = await _execQuery('DELETE FROM pet where codigo_pet = ?', [id]);
+    var result = await _execQuery('DELETE FROM agenda where id_agenda = ?', [id]);
     return result.affectedRows > 0;
   }
 
   @override
   Future<List<AgendamentoModel>> findAll() async {
-    var result = await _execQuery('SELECT * FROM pet  ', );
+    var result = await _execQuery('SELECT * FROM agenda  ', );
     List<AgendamentoModel> _agendamentos = [];
     return result
         .map((r) => AgendamentoModel.fromMap(r.fields))
@@ -46,7 +44,7 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
   @override
   Future<AgendamentoModel?> findOne(AgendamentoModel value) async {
     var result = await _execQuery(
-      'SELECT * FROM pet where nome = ? AND especie = ?',
+      'SELECT * FROM agenda where cpf = ? AND codigo_pet = ?',
       [value.cpf, value.pet],
     );
 
@@ -58,8 +56,8 @@ class AgendamentoDao implements Dao<AgendamentoModel> {
   @override
   Future<bool> update(AgendamentoModel value) async {
     var result = await _execQuery(
-      'UPDATE pet set nome = ?, especie = ? where codigo_pet = ? ',
-      [value.cpf, value.cpf, value.cpf],
+      'UPDATE agenda set cpf = ?, data_agendamento = ?, hora_agendamento = ?, codigo_servico = ?, codigo_pet = ?',
+      [value.cpf, value.data, value.hora, value.servico, value.pet],
     );
     return result.affectedRows > 0;
   }
@@ -72,9 +70,11 @@ SELECT
     p.nome AS nome_pet,
     p.especie,
     p.idade,
-    s.especialidade,
+    s.nome,
+    s.categoria,
     a.data_agendamento,
-    a.hora_agendamento
+    a.hora_agendamento,
+    a.status
 FROM pet AS p
 INNER JOIN tutela AS t
     ON t.codigo_pet = p.codigo_pet
@@ -89,6 +89,8 @@ ORDER BY p.nome, a.data_agendamento, a.hora_agendamento;
       [cpfTutor],
     );
 return result.map<Map<String, dynamic>>((row) {
+  final status = row['status'];
+  final nome = row['nome'];
   final data = row['data_agendamento'] as DateTime;
   final hora = row['hora_agendamento'] as Duration;
 
@@ -101,9 +103,11 @@ return result.map<Map<String, dynamic>>((row) {
 
   return {
     'nome_pet': row['nome_pet'],
-    'especialidade': row['especialidade'],
+    'nome_servico': nome,
+    'categoria': row['categoria'],
     'data': dataFormatada,
     'hora': horaFormatada,
+    'status': status,
   };
 }).toList();
 

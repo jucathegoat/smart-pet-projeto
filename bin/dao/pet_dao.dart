@@ -17,40 +17,43 @@ class PetDao implements Dao<PetModel> {
     return result.affectedRows > 0;
   }
 
-Future<bool> deletePet(int codigoPet) async {
-  try {
-    await _execQuery(
-      'DELETE FROM tutela WHERE codigo_pet = ?;',
-      [codigoPet],
-    );
+  Future<bool> deletePet(int codigoPet) async {
+    try {
+      await _execQuery('DELETE FROM tutela WHERE codigo_pet = ?;', [codigoPet]);
 
-    await _execQuery(
-      'DELETE FROM agenda WHERE codigo_pet = ?;',
-      [codigoPet],
-    );
+      try {
+        await _execQuery('DELETE FROM agenda WHERE codigo_pet = ?;', [
+          codigoPet,
+        ]);
+      } catch (e) {
+        print("Erro ao deletar agendamento: $e");
+      }
+      final result = await _execQuery('DELETE FROM pet WHERE codigo_pet = ?;', [
+        codigoPet,
+      ]);
 
-    final result = await _execQuery(
-      'DELETE FROM pet WHERE codigo_pet = ?;',
-      [codigoPet],
-    );
-
-    return result.affectedRows > 0;
-
-  } catch (e) {
-    print("Erro ao deletar pet: $e");
-    return false;
+      return result.affectedRows > 0;
+    } catch (e) {
+      print("Erro ao deletar pet: $e");
+      return false;
+    }
   }
-}
-
-
 
   Future<bool> createWithTutor(PetModel value, String cpfTutor) async {
     final connection = await _dbConfiguration.connection;
 
     await connection.transaction((txn) async {
       final result = await txn.query(
-        'INSERT INTO pet (especie, nome, idade) VALUES (?, ?, ?)',
-        [value.especie, value.nome, value.idade],
+        'INSERT INTO pet (nome, especie, porte, raca, idade, peso, n_documento) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [
+          value.nome,
+          value.especie,
+          value.porte,
+          value.raca,
+          value.idade,
+          value.peso,
+          value.nDocumento,
+        ],
       );
 
       final codigoPet = result.insertId;
@@ -75,6 +78,10 @@ Future<bool> deletePet(int codigoPet) async {
       p.codigo_pet,
       p.nome,
       p.especie,
+      p.porte,
+      p.raca,
+      p.peso,
+      p.n_documento,
       p.idade
     FROM pet p
     INNER JOIN tutela t
@@ -90,7 +97,11 @@ Future<bool> deletePet(int codigoPet) async {
             'codigoPet': row['codigo_pet'],
             'nome': row['nome'],
             'especie': row['especie'],
+            'porte': row['porte'],
+            'raca': row['raca'],
             'idade': row['idade'],
+            'peso': row['peso'],
+            'n_documento': row['n_documento'],
           },
         )
         .toList();

@@ -97,11 +97,6 @@ class _TelaPetsState extends State<TelaPets> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meus pets'),
-        backgroundColor: const Color.fromARGB(255, 249, 243, 243),
-        foregroundColor: Colors.black,
-      ),
       body: SafeArea(
         child: Builder(
           builder: (context) {
@@ -143,77 +138,92 @@ class _TelaPetsState extends State<TelaPets> {
                   final pet = pets[index];
 
                   return Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.pets),
-                      title: Text(pet['nome'] ?? 'Sem nome'),
-                      subtitle: Text(
-                        'Espécie: ${pet['especie'] ?? 'Não informada'}\n'
-                        'Idade: ${pet['idade'] ?? 'Não informada'}',
-                      ),
-                      trailing: Wrap(
-                        direction: Axis.vertical,
-                        spacing: 4,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: const Color.fromARGB(255, 249, 243, 243),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Confirmar exclusão"),
-                                  content: const Text(
-                                    "Tem certeza que deseja deletar este pet?",
+                          // Cabeçalho com nome e botões
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                pet['nome'] ?? 'Sem nome',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit_outlined,
+                                      color: Colors.blueAccent,
+                                    ),
+                                    onPressed: () {
+                                      // ação de editar
+                                    },
                                   ),
-                                  actions: [
-                                    TextButton(
-                                      child: const Text("Cancelar"),
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pop(); // fecha o dialog
-                                      },
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
                                     ),
-                                    ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color.fromARGB(
-                                          255,
-                                          26,
-                                          58,
-                                          27,
-                                        ), // botão vermelho
-                                      ),
-                                      child: const Text(
-                                        "Deletar",
-                                        style: TextStyle(
-                                          color: Color.fromARGB(
-                                            255,
-                                            246,
-                                            247,
-                                            246,
+                                    onPressed: () => showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text(
+                                            "Confirmar exclusão",
                                           ),
-                                        ),
-                                      ),
-
-                                      onPressed: () async {
-                                        final id =
-                                            pet['codigoPet']
-                                                as int;
-                                        await deletarPet(
-                                          id,
+                                          content: const Text(
+                                            "Tem certeza que deseja deletar este pet?",
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              child: const Text("Cancelar"),
+                                              onPressed: () =>
+                                                  Navigator.of(context).pop(),
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Color.fromARGB(255, 26, 58, 27),
+                                              ),
+                                              child: const Text("Deletar",
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              onPressed: () async {
+                                                final id =
+                                                    pet['codigoPet'] as int;
+                                                await deletarPet(id);
+                                                carregarPets();
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
                                         );
-                                        carregarPets;
-                                        Navigator.of(context)
-                                            .pop(); 
                                       },
                                     ),
-                                  ],
-                                );
-                              },
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            onPressed: null,
-                            icon: const Icon(Icons.edit_outlined),
+                          const SizedBox(height: 8),
+                          // Informações do pet
+                          Text(
+                            '🐾 Espécie: ${pet['especie'] ?? 'Não informada'}',
                           ),
+                          Text('🦴 Raça: ${pet['raca'] ?? 'Não informada'}'),
+                          Text('📏 Porte: ${pet['porte'] ?? 'Não informada'}'),
+                          Text('🎂 Idade: ${pet['idade'] ?? 'Não informada'}'),
                         ],
                       ),
                     ),

@@ -4,10 +4,11 @@ class AgendamentoModel {
   int? pet;
   String? data;
   String? hora;
+  String? status;
 
   AgendamentoModel();
 
-  AgendamentoModel.create(this.cpf, this.servico, this.pet, this.data, this.hora);
+  AgendamentoModel.create(this.cpf, this.servico, this.pet, this.data, this.hora, this.status);
 
   factory AgendamentoModel.fromMap(Map<String, dynamic> map) {
     return AgendamentoModel.create(
@@ -16,6 +17,7 @@ class AgendamentoModel {
       map['pet'] ?? '',
       map['data']?? '',
       map['hora']?? '',
+      map['status']?? '',
     );
   }
 
@@ -25,7 +27,8 @@ class AgendamentoModel {
     ..servico = map['servico']
     ..pet = map['pet']
     ..data = map['data']
-    ..hora = map['hora'];
+    ..hora = map['hora']
+    ..status = map['status'];
   }
 
   Map<String, dynamic> toMap() {
@@ -35,11 +38,12 @@ class AgendamentoModel {
       'pet': pet,
       'data': data,
       'hora': hora,
+      'status': status,
     };
   }
 
   @override
   String toString() {
-    return 'agendamentoModel(cpf:$cpf, servico: $servico, pet: $pet,data: $data, , hora: $hora)';
+    return 'agendamentoModel(cpf:$cpf, servico: $servico, pet: $pet,data: $data, hora: $hora, status: $status)';
   }
 }

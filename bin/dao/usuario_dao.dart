@@ -9,14 +9,16 @@ class UsuarioDao implements Dao<UsuarioModel> {
   @override
   Future<bool> create(UsuarioModel value) async {
     var result = await _execQuery(
-      'INSERT INTO tutor (cpf, email,nome,endereco,usuario,senha) VALUES (?,?,?,?,?,?)',
+      'INSERT INTO tutor (cpf, nome,telefone,endereco,email,usuario,senha,status_conta) VALUES (?,?,?,?,?,?,?,?)',
       [
         value.cpf,
-        value.email,
         value.nome,
+        value.telefone,
         value.endereco,
+        value.email,
         value.usuario,
         value.senha,
+        value.status_conta
       ],
     );
     return result.affectedRows > 0;

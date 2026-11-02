@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/tela_agendamento.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -158,7 +158,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
                 items: listaServicos.map<DropdownMenuItem<String>>((servico) {
                   return DropdownMenuItem<String>(
                     value: servico['codigoServico'].toString(), // valor interno
-                    child: Text(servico['especialidade']), // texto exibido
+                    child: Text(servico['nome']), // texto exibido
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -221,8 +221,8 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
                     ),
                     onPressed: () async{
                      await salvarAgendamento();
-                      Navigator.push(context,
-                      MaterialPageRoute(builder: (builder) => TelaAgendamento(cpf: widget.cpf,)));
+                      Navigator.pop(context);
+                     
                     
                     },
                     child: Text("Agendar"),

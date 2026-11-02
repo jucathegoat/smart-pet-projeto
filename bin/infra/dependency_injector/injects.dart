@@ -12,14 +12,17 @@ import '../../dao/usuario_dao.dart';
 import '../../dao/pet_dao.dart';
 import '../../dao/servico_dao.dart';
 import '../../dao/agendamento_dao.dart';
+import '../../dao/produto_dao.dart';
 import '../../services/usuario_service.dart';
 import '../../services/pet_service.dart';
 import '../../services/servico_service.dart';
 import '../../services/agendamento_service.dart';
+import '../../services/produto_service.dart';
 import '../../apis/usuario_api.dart';
 import '../../apis/pet_api.dart';
 import '../../apis/servicos_api.dart';
 import '../../apis/agendamento_api.dart';
+import '../../apis/produto_api.dart';
 
 class Injects {
   static DependencyInjector initialize() {
@@ -54,6 +57,10 @@ class Injects {
     di.register<AgendamentoDao>(()=> AgendamentoDao(di<DbConfiguration>()));
     di.register<AgendamentoService>(()=>AgendamentoService(agendamentoDao: di<AgendamentoDao>()));
     di.register<AgendamentoApi>(()=> AgendamentoApi(di<AgendamentoService>()));
+
+    di.register<ProdutoDao>(()=> ProdutoDao(di<DbConfiguration>()));
+    di.register<ProdutoService>(()=>ProdutoService(produtoDao: di<ProdutoDao>()));
+    di.register<ProdutoApi>(()=> ProdutoApi(di<ProdutoService>()));
     return di;
   }
 }

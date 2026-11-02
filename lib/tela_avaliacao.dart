@@ -105,16 +105,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Fundo em tom creme/suave idêntico à Tela de Pets
-      backgroundColor: const Color.fromARGB(255, 255, 252, 243),
-      appBar: AppBar(
-        title: const Text(
-          'Avaliar Atendimento',
-          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color.fromARGB(255, 249, 243, 243),
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      backgroundColor: const Color.fromARGB(255, 249, 243, 243),
       body: SafeArea(
         child: Builder(
           builder: (context) {
@@ -166,7 +157,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 245, 242, 248), // Mesma cor do card dos pets
+                      color: const Color.fromARGB(255, 249, 243, 243), // Mesma cor do card dos pets
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(

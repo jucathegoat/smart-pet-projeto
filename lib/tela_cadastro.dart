@@ -20,6 +20,7 @@ String telefone = '';
 String endereco = '';
 String usuario = '';
 String senha = '';
+String statusConta = 'ativo';
 
 Future<void> cadastrarUsuario() async {
   var url = Uri.parse('http://localhost:8080/usuario');
@@ -30,9 +31,11 @@ Future<void> cadastrarUsuario() async {
       'nome': nome,
       'cpf': cpf,
       'email': email,
+      'telefone':telefone,
       'endereco': endereco,
       'usuario': usuario,
       'senha': senha,
+      'status_conta':statusConta
     }),
   );
 
@@ -49,6 +52,7 @@ Future<void> cadastrarUsuario() async {
     endereco = '';
     usuario = '';
     senha = '';
+    
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Erro ao cadastrar usuário')),

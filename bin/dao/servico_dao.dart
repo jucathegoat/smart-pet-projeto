@@ -9,11 +9,12 @@ class ServicoDao implements Dao<ServicoModel> {
   @override
   Future<bool> create(ServicoModel value) async {
     var result = await _execQuery(
-      'INSERT INTO servico (codigo_servico, especialidade,valor) VALUES (?,?,?)',
+      'INSERT INTO servico (codigo_servico, nome, preco, categoria) VALUES (?,?,?,?)',
       [
         value.codigoServico,
-        value.especialidade,
-        value.valor,
+        value.nome,
+        value.preco,
+        value.categoria,
       ],
     );
     return result.affectedRows > 0;
@@ -21,7 +22,7 @@ class ServicoDao implements Dao<ServicoModel> {
 
   @override
   Future<bool> delete(int id) async {
-    var result = await _execQuery('DELETE FROM servico where cpf = ?', [id]);
+    var result = await _execQuery('DELETE FROM servico where codigo_servico = ?', [id]);
     return result.affectedRows > 0;
   }
 
@@ -47,8 +48,8 @@ class ServicoDao implements Dao<ServicoModel> {
   @override
   Future<bool> update(ServicoModel value) async {
     var result = await _execQuery(
-      'UPDATE servico set valor = ? where codigo_servico = ? ',
-      [value.valor, value.codigoServico],
+      'UPDATE servico set preco = ? where codigo_servico = ? ',
+      [value.preco, value.codigoServico],
     );
     return result.affectedRows > 0;
   }

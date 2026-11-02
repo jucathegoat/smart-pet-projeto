@@ -1,45 +1,50 @@
 class ServicoModel {
    int? codigoServico;
-   String? especialidade;
-   double? valor;
+   String? nome;
+   double? preco;
+   String? categoria;
 
    ServicoModel();
 
-  ServicoModel.create(this.codigoServico, this.especialidade, this.valor);
+  ServicoModel.create(this.codigoServico, this.nome, this.preco, this.categoria);
 
   factory ServicoModel.fromMap(Map<String, dynamic> map){
     return ServicoModel.create(
     map['codigo_servico'].toInt() ?? 0,
-    map['especialidade'] ?? '',
-    map['valor'] ?? 0);
+    map['nome'] ?? '',
+    map['preco'] ?? 0,
+    map['categoria'] ?? '');
     
   }
 
   factory ServicoModel.fromRequest(Map map){
     return ServicoModel()
     ..codigoServico = map['codigoServico']
-    ..especialidade = map['especialidade']
-    ..valor = map['valor'];
+    ..nome = map['nome']
+    ..preco = map['preco']
+    ..categoria = map['categoria'];
   }
 
     Map<String, dynamic> toMap() {
     return {
       'codigoServico': codigoServico,
-      'especialidade': especialidade,
-      'valor': valor,
+      'nome': nome,
+      'preco': preco,
+      'categoria': categoria,
     };
   }
 
     Map toJson(){
     return{
       'codigoServico': codigoServico,
-      'especialidade': especialidade,
-      'valor': valor,
+      'nome': nome,
+      'preco': preco,
+      'categoria': categoria,
     };
     }
 
   @override
   String toString() {
-    return 'ServicoModel(codigoServico: $codigoServico, especialidade:$especialidade, valor: $valor)';
+    return 'ServicoModel(codigoServico: $codigoServico, nome:$nome, preco: $preco, categoria: $categoria)';
   }
 }

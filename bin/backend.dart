@@ -9,6 +9,7 @@ import 'apis/usuario_api.dart';
 import 'apis/pet_api.dart';
 import 'apis/servicos_api.dart';
 import 'apis/agendamento_api.dart';
+import 'apis/produto_api.dart';
 
 void main() async {
   CustomEnv.fromFile('.env-dev');
@@ -22,6 +23,7 @@ void main() async {
       .add(_di.get<PetApi>().getHandler())
       .add(_di.get<ServicosApi>().getHandler())
       .add(_di.get<AgendamentoApi>().getHandler())
+      .add(_di.get<ProdutoApi>().getHandler())
       .handler;
 
   var handler = Pipeline()
