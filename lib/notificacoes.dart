@@ -42,7 +42,7 @@ class _NotificacoesState extends State<Notificacoes> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F7F5),
       appBar: AppBar(
-        title: const Text('NotificaÃ§Ãµes', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Notificações', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF1B5E20),
         foregroundColor: Colors.white,
         elevation: 1,
@@ -62,7 +62,7 @@ class _NotificacoesState extends State<Notificacoes> {
                     children: [
                       Icon(Icons.notifications_none, size: 64, color: Colors.grey[400]),
                       const SizedBox(height: 12),
-                      const Text('NÃ£o hÃ¡ notificaÃ§Ãµes', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      const Text('Não há notificações', style: TextStyle(fontSize: 16, color: Colors.grey)),
                     ],
                   ),
                 )

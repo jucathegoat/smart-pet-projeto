@@ -63,7 +63,7 @@ class _TelaLojaState extends State<TelaLoja> {
                     children: [
                       Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
                       const SizedBox(height: 12),
-                      const Text('NÃ£o hÃ¡ Produtos DisponÃ­veis', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                      const Text('Não há Produtos Disponíveis', style: TextStyle(fontSize: 16, color: Colors.grey)),
                     ],
                   ),
                 )

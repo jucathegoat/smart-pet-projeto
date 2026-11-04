@@ -64,7 +64,7 @@ public class FilaController {
         if ("chamar".equalsIgnoreCase(acao)) {
             filaService.chamarProximo();
         } else if ("cancelar".equalsIgnoreCase(acao) && id != null) {
-            filaService.cancelar(id, motivo != null ? motivo : "Cancelado pela administraÃ§Ã£o");
+            filaService.cancelar(id, motivo != null ? motivo : "Cancelado pela administração");
         } else if ("concluir".equalsIgnoreCase(acao) && id != null) {
             filaService.concluir(id);
         }

@@ -34,7 +34,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
     super.dispose();
   }
 
-  // IntegraÃ§Ã£o direta com o backend Java (Spring Boot / FilaController)
+  // Integração direta com o backend Java (Spring Boot / FilaController)
   Future<void> agendarNaFila() async {
     final cliente = _clienteController.text.trim();
     final pet = _petController.text.trim();
@@ -67,8 +67,8 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
             title: const Text('ðŸŽ‰ Agendado com Sucesso!'),
             content: Text(
               'O pet "$pet" entrou na Fila de Atendimento do PetShop!\n\n'
-              'ServiÃ§o: $servicoSelecionado\n\n'
-              'O atendente jÃ¡ pode visualizar e chamar no painel administrativo.',
+              'Serviço: $servicoSelecionado\n\n'
+              'O atendente já pode visualizar e chamar no painel administrativo.',
             ),
             actions: [
               TextButton(
@@ -89,7 +89,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('NÃ£o foi possÃ­vel conectar ao servidor: $e')),
+        SnackBar(content: Text('Não foi possível conectar ao servidor: $e')),
       );
     } finally {
       if (mounted) {
@@ -141,13 +141,13 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
                 value: servicoSelecionado,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "ServiÃ§o Desejado",
+                  labelText: "Serviço Desejado",
                   prefixIcon: Icon(Icons.cleaning_services),
                 ),
                 items: const [
                   DropdownMenuItem(value: "Banho e Tosa", child: Text("Banho e Tosa")),
-                  DropdownMenuItem(value: "Consulta VeterinÃ¡ria", child: Text("Consulta VeterinÃ¡ria")),
-                  DropdownMenuItem(value: "VacinaÃ§Ã£o", child: Text("VacinaÃ§Ã£o")),
+                  DropdownMenuItem(value: "Consulta Veterinária", child: Text("Consulta Veterinária")),
+                  DropdownMenuItem(value: "Vacinação", child: Text("Vacinação")),
                   DropdownMenuItem(value: "Exame Geral", child: Text("Exame Geral")),
                 ],
                 onChanged: (value) {
