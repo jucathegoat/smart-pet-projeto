@@ -51,7 +51,7 @@ Future<void> cadastrarUsuario() async {
     senha = '';
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao cadastrar usuÃƒÂ¡rio')),
+      SnackBar(content: Text('Erro ao cadastrar usuário')),
     );
   }
 }
@@ -131,8 +131,8 @@ Future<void> cadastrarUsuario() async {
               TextField(
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "EndereÃƒÂ§o",
-                  hintText: "Digite seu endereÃƒÂ§o",
+                  labelText: "Endereço",
+                  hintText: "Digite seu endereço",
                 ),
                 onChanged: (value) {
                   setState(() {

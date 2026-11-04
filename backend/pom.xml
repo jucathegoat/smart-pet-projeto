@@ -39,7 +39,7 @@
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
 
-		<!-- Suporte para renderizaÃƒÂ§ÃƒÂ£o de pÃƒÂ¡ginas JSP no Tomcat Embutido -->
+		<!-- Suporte para renderização de páginas JSP no Tomcat Embutido -->
 		<dependency>
 			<groupId>org.apache.tomcat.embed</groupId>
 			<artifactId>tomcat-embed-jasper</artifactId>

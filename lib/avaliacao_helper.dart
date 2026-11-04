@@ -16,13 +16,13 @@ Future<void> enviarAvaliacao(BuildContext context, int servicoId, int nota) asyn
       }),
     );
 
-    // Garante que o widget/diÃƒÂ¡logo ainda estÃƒÂ¡ ativo na tela antes de interagir com o contexto
+    // Garante que o widget/diálogo ainda está ativo na tela antes de interagir com o contexto
     if (!context.mounted) return;
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      Navigator.of(context).pop(); // Fecha o pop-up de avaliaÃƒÂ§ÃƒÂ£o
+      Navigator.of(context).pop(); // Fecha o pop-up de avaliação
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Obrigado pela sua avaliaÃƒÂ§ÃƒÂ£o!')),
+        const SnackBar(content: Text('Obrigado pela sua avaliação!')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -32,7 +32,7 @@ Future<void> enviarAvaliacao(BuildContext context, int servicoId, int nota) asyn
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro de conexÃƒÂ£o: $e')),
+      SnackBar(content: Text('Erro de conexão: $e')),
     );
   }
 }
@@ -43,8 +43,8 @@ void mostrarPopupAvaliacao(BuildContext context, int servicoId) {
     barrierDismissible: false, // Impede fechar clicando fora sem avaliar
     builder: (BuildContext dialogContext) {
       return AlertDialog(
-        title: const Text('Como vocÃƒÂª avalia nosso atendimento?'),
-        content: const Text('O seu atendimento foi concluÃƒÂ­do. Por favor, avalie a sua experiÃƒÂªncia:'),
+        title: const Text('Como você avalia nosso atendimento?'),
+        content: const Text('O seu atendimento foi concluído. Por favor, avalie a sua experiência:'),
         actions: [
           TextButton(
             onPressed: () => enviarAvaliacao(dialogContext, servicoId, 1),

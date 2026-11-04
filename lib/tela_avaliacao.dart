@@ -27,7 +27,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     carregarItensPendentes();
   }
 
-  // Busca na API os atendimentos finalizados pendentes de avaliaÃƒÂ§ÃƒÂ£o
+  // Busca na API os atendimentos finalizados pendentes de avaliação
   Future<void> carregarItensPendentes() async {
     setState(() {
       carregando = true;
@@ -45,7 +45,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
           itensParaAvaliar = dados is List ? dados : (dados['itens'] ?? []);
         });
       } else if (resposta.statusCode == 404) {
-        // Se a rota nÃƒÂ£o existir no backend, trata como lista vazia
+        // Se a rota não existir no backend, trata como lista vazia
         setState(() {
           itensParaAvaliar = [];
         });
@@ -55,7 +55,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
         });
       }
     } catch (e) {
-      // Se nÃƒÂ£o houver conexÃƒÂ£o, nÃƒÂ£o trava a tela com erro grave
+      // Se não houver conexão, não trava a tela com erro grave
       setState(() {
         itensParaAvaliar = [];
       });
@@ -68,7 +68,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     }
   }
 
-  // Envia a nota do serviÃƒÂ§o finalizado
+  // Envia a nota do serviço finalizado
   Future<void> _enviarAvaliacao(int servicoId, int nota) async {
     try {
       final response = await http.post(
@@ -84,7 +84,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Obrigado pela sua avaliaÃƒÂ§ÃƒÂ£o!')),
+          const SnackBar(content: Text('Obrigado pela sua avaliação!')),
         );
         carregarItensPendentes(); // Remove o item avaliado da lista
       } else {
@@ -95,7 +95,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro de conexÃƒÂ£o: $e')),
+          SnackBar(content: Text('Erro de conexão: $e')),
         );
       }
     }
@@ -104,7 +104,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fundo em tom creme/suave idÃƒÂªntico ÃƒÂ  Tela de Pets
+      // Fundo em tom creme/suave idêntico à Tela de Pets
       backgroundColor: const Color.fromARGB(255, 255, 252, 243),
       appBar: AppBar(
         title: const Text(
@@ -144,7 +144,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
             if (itensParaAvaliar.isEmpty) {
               return const Center(
                 child: Text(
-                  'NÃƒÂ£o contem item para avaliar',
+                  'Não contem item para avaliar',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               );
@@ -175,14 +175,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // ÃƒÂcone da pata ÃƒÂ  esquerda
+                            // ÃƒÂcone da pata à esquerda
                             const Icon(
                               Icons.pets,
                               color: Color.fromARGB(255, 70, 70, 70),
                               size: 28,
                             ),
                             const SizedBox(width: 16),
-                            // InformaÃƒÂ§ÃƒÂµes do Chamado / Pet
+                            // InformaçÃƒÂµes do Chamado / Pet
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,14 +197,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'ServiÃƒÂ§o: $servico',
+                                    'Serviço: $servico',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.grey.shade700,
                                     ),
                                   ),
                                   Text(
-                                    'Status: ConcluÃƒÂ­do',
+                                    'Status: Concluído',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.green.shade700,
@@ -221,7 +221,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                           child: Divider(height: 1),
                         ),
                         const Text(
-                          'Como foi o serviÃƒÂ§o?',
+                          'Como foi o serviço?',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -229,7 +229,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // BotÃƒÂµes de AvaliaÃƒÂ§ÃƒÂ£o integrados no prÃƒÂ³prio Card
+                        // BotÃƒÂµes de Avaliação integrados no próprio Card
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [

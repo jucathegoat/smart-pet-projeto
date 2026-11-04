@@ -51,7 +51,7 @@ class TelaLoginState extends State<TelaLogin> {
       }
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('UsuÃƒÂ¡rio ou senha incorretos')));
+          .showSnackBar(SnackBar(content: Text('Usuário ou senha incorretos')));
     }
   }
 
@@ -93,7 +93,7 @@ class TelaLoginState extends State<TelaLogin> {
                   obscureText: false,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "UsuÃƒÂ¡rio",
+                    labelText: "Usuário",
                   ),
                 ),
               ),
@@ -115,7 +115,7 @@ class TelaLoginState extends State<TelaLogin> {
                   if (usuarioControler.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Por favor, insira um usuÃƒÂ¡rio vÃƒÂ¡lido.'),
+                        content: Text('Por favor, insira um usuário válido.'),
                         duration: Duration(seconds: 2),
                       ),
                     );

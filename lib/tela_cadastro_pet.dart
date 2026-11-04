@@ -85,8 +85,8 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                 controller: racaControler,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "EspÃƒÂ©cie",
-                  hintText: "Digite a espÃƒÂ©cie do seu pet",
+                  labelText: "Espécie",
+                  hintText: "Digite a espécie do seu pet",
                 ),
               ),
               SizedBox(height: 10),
@@ -124,7 +124,7 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                       ),
                     ),
                     onPressed: () {
-                      // LÃƒÂ³gica para voltar ÃƒÂ  tela anterior
+                      // Lógica para voltar à tela anterior
                       Navigator.pop(context);
                     },
                     child: const Text("Voltar"),

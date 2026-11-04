@@ -18,7 +18,7 @@ class _TelaPetsState extends State<TelaPets> {
   bool carregando = true;
   String? erro;
 
-  // Ajuste a porta para a porta em que sua API estÃƒÂ¡ rodando.
+  // Ajuste a porta para a porta em que sua API está rodando.
   final String baseUrl = 'http://localhost:8086';
 
   @override
@@ -47,7 +47,7 @@ class _TelaPetsState extends State<TelaPets> {
           });
         } else {
           setState(() {
-            erro = 'NÃƒÂ£o foi possÃƒÂ­vel carregar seus pets.';
+            erro = 'Não foi possível carregar seus pets.';
           });
         }
       } else {
@@ -57,7 +57,7 @@ class _TelaPetsState extends State<TelaPets> {
       }
     } catch (e) {
       setState(() {
-        erro = 'NÃƒÂ£o foi possÃƒÂ­vel conectar ÃƒÂ  API.';
+        erro = 'Não foi possível conectar à API.';
       });
     } finally {
       if (mounted) {
@@ -117,7 +117,7 @@ class _TelaPetsState extends State<TelaPets> {
             if (pets.isEmpty) {
               return const Center(
                 child: Text(
-                  'NÃƒÂ£o hÃƒÂ¡ nenhum pet cadastrado',
+                  'Não há nenhum pet cadastrado',
                   textAlign: TextAlign.center,
                 ),
               );
@@ -136,8 +136,8 @@ class _TelaPetsState extends State<TelaPets> {
                       leading: const Icon(Icons.pets),
                       title: Text(pet['nome'] ?? 'Sem nome'),
                       subtitle: Text(
-                        'EspÃƒÂ©cie: ${pet['especie'] ?? 'NÃƒÂ£o informada'}\n'
-                        'Idade: ${pet['idade'] ?? 'NÃƒÂ£o informada'}',
+                        'Espécie: ${pet['especie'] ?? 'Não informada'}\n'
+                        'Idade: ${pet['idade'] ?? 'Não informada'}',
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),
