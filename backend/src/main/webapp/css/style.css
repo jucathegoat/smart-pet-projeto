@@ -300,3 +300,22 @@ textarea:focus {
     color: #1a7f37;
     border: 1px solid #4ac26b;
 }
+/* Estilos de fidelidade visual com tema Petshop */
+.navbar {
+    background-color: #1b5e20 !important; /* Verde escuro do Flutter SmartPet */
+}
+.navbar .logo {
+    color: #ffffff;
+    font-size: 1.3rem;
+}
+.navbar nav a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+}
+.btn-sucesso {
+    background-color: #2e7d32;
+    color: #ffffff;
+}
+.btn-sucesso:hover {
+    background-color: #1b5e20;
+}

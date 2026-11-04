@@ -1,140 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/tela_agendamento.dart';
-
 import 'package:http/http.dart' as http;
-
 import 'dart:convert';
 
 class TelaNovoAgendamento extends StatefulWidget {
-  const TelaNovoAgendamento({super.key, required this.cpf});
-
-  final String cpf;
-
+  final String? usuarioInicial;
+  const TelaNovoAgendamento({super.key, this.usuarioInicial});
 
   @override
   State<TelaNovoAgendamento> createState() => _TelaNovoAgendamentoState();
 }
 
 class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
-  String? servicoSelecionado;
-  String? petSelecionado;
-  final petController = TextEditingController();
-  final dataController = TextEditingController();
-  final horaController = TextEditingController();
-  List<dynamic> listaServicos = [];
-  List<dynamic> listaPets = [];
+  final _clienteController = TextEditingController();
+  final _petController = TextEditingController();
+  final _telefoneController = TextEditingController();
 
-  final String baseUrl = 'http://localhost:8080';
+  String servicoSelecionado = 'Banho e Tosa';
+  bool enviando = false;
 
   @override
   void initState() {
     super.initState();
-    listarServicos();
-    listarPets();
-  }
-
-  Future<void> listarServicos() async {
-    try {
-      final resposta = await http.get(Uri.parse('$baseUrl/servicos'));
-      if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
-        setState(() {
-          listaServicos = dados['servicos'] ?? [];
-        });
-      }
-    } catch (e) {
-      print("Erro ao carregar serviços: $e");
+    if (widget.usuarioInicial != null) {
+      _clienteController.text = widget.usuarioInicial!;
     }
   }
 
-  Future<void> salvarAgendamento() async {
-    if (servicoSelecionado == null ||
-        petSelecionado!.isEmpty ||
-        dataController.text.isEmpty ||
-        horaController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Preencha todos os campos!")));
+  @override
+  void dispose() {
+    _clienteController.dispose();
+    _petController.dispose();
+    _telefoneController.dispose();
+    super.dispose();
+  }
+
+  // IntegraÃ§Ã£o direta com o backend Java (Spring Boot / FilaController)
+  Future<void> agendarNaFila() async {
+    final cliente = _clienteController.text.trim();
+    final pet = _petController.text.trim();
+
+    if (cliente.isEmpty || pet.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, informe seu nome e o nome do pet!')),
+      );
       return;
     }
 
-    final agendamento = {
-      "cpf": widget.cpf,
-      "servico": int.parse(servicoSelecionado!),
-      "pet": int.parse(petSelecionado!),
-      "data": dataController.text,
-      "hora": horaController.text,
-      "status": "Em andamento",
-    };
+    setState(() {
+      enviando = true;
+    });
 
     try {
-      final resposta = await http.post(
-        Uri.parse('$baseUrl/novo/agendamento'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(agendamento),
+      // URL do backend Spring Boot onde roda a fila em tempo real
+      final url = Uri.parse(
+        'http://localhost:8086/api/fila/adicionar?cliente=${Uri.encodeComponent(cliente)}&pet=${Uri.encodeComponent(pet)}&servico=${Uri.encodeComponent(servicoSelecionado)}',
       );
 
-      if (resposta.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Agendamento realizado com sucesso!")),
+      final resposta = await http.post(url);
+
+      if (!mounted) return;
+
+      if (resposta.statusCode == 200 || resposta.statusCode == 201) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('ðŸŽ‰ Agendado com Sucesso!'),
+            content: Text(
+              'O pet "$pet" entrou na Fila de Atendimento do PetShop!\n\n'
+              'ServiÃ§o: $servicoSelecionado\n\n'
+              'O atendente jÃ¡ pode visualizar e chamar no painel administrativo.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pop(context); // Volta para a tela anterior
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Erro ao salvar agendamento.")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao entrar na fila: ${resposta.statusCode}')),
+        );
       }
     } catch (e) {
-      print("Erro: $e");
-    }
-  }
-
-  Future<void> selecionarData() async {
-    DateTime? dataEscolhida = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-
-    if (dataEscolhida != null) {
-      setState(() {
-        dataController.text =
-            "${dataEscolhida.year}-${dataEscolhida.month}-${dataEscolhida.day}";
-      });
-    }
-  }
-
-  Future<void> selecionarHora() async {
-    TimeOfDay? horaEscolhida = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (horaEscolhida != null) {
-      setState(() {
-        horaController.text =
-            "${horaEscolhida.hour.toString().padLeft(2, '0')}:${horaEscolhida.minute.toString().padLeft(2, '0')}";
-      });
-    }
-  }
-
-  Future<void> listarPets() async {
-    try {
-      final resposta = await http.get(Uri.parse('${baseUrl}/tutor/${widget.cpf}/pets'));
-      if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('NÃ£o foi possÃ­vel conectar ao servidor: $e')),
+      );
+    } finally {
+      if (mounted) {
         setState(() {
-          listaPets =  dados['pets'] ?? [];
+          enviando = false;
         });
       }
-    } catch (e) {
-      print("Erro ao carregar serviços: $e");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Novo Agendamento",
           style: TextStyle(
             fontSize: 20,
@@ -147,103 +117,94 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(34),
+          padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 30),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Serviço",
-                ),
-                items: listaServicos.map<DropdownMenuItem<String>>((servico) {
-                  return DropdownMenuItem<String>(
-                    value: servico['codigoServico'].toString(), // valor interno
-                    child: Text(servico['nome']), // texto exibido
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    servicoSelecionado = value;
-                  });
-                },
+              const Text(
+                "Entrar na Fila de Atendimento",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Pet",
-                ),
-                items: listaPets.map<DropdownMenuItem<String>>((pets) {
-                  return DropdownMenuItem<String>(
-                    value: pets['codigoPet'].toString(),
-                    child: Text(pets['nome']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    petSelecionado = value;
-                  });
-                },
-              ),
-              SizedBox(height: 10),
+              const SizedBox(height: 20),
               TextField(
-                readOnly: true,
-                decoration: InputDecoration(
+                controller: _clienteController,
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "Data",
-                  hintText: "Selecione a data",
-                  suffixIcon: Icon(Icons.calendar_today),
+                  labelText: "Cliente / Tutor",
+                  hintText: "Digite seu nome completo",
+                  prefixIcon: Icon(Icons.person),
                 ),
-                controller: dataController,
-                onTap: selecionarData,
               ),
-              SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                decoration: InputDecoration(
+              const SizedBox(height: 14),
+              DropdownButtonFormField<String>(
+                value: servicoSelecionado,
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "Hora",
-                  hintText: "Selecione a hora",
-                  suffixIcon: Icon(Icons.access_time),
+                  labelText: "ServiÃ§o Desejado",
+                  prefixIcon: Icon(Icons.cleaning_services),
                 ),
-                controller: horaController,
-                onTap: selecionarHora,
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 26, 58, 27),
-                      ),
-                    ),
-                    onPressed: () async{
-                     await salvarAgendamento();
-                      Navigator.pop(context);
-                     
-                    
-                    },
-                    child: Text("Agendar"),
-                  ),
-                  SizedBox(width: 10),
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 228, 230, 228),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "Cancelar",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
+                items: const [
+                  DropdownMenuItem(value: "Banho e Tosa", child: Text("Banho e Tosa")),
+                  DropdownMenuItem(value: "Consulta VeterinÃ¡ria", child: Text("Consulta VeterinÃ¡ria")),
+                  DropdownMenuItem(value: "VacinaÃ§Ã£o", child: Text("VacinaÃ§Ã£o")),
+                  DropdownMenuItem(value: "Exame Geral", child: Text("Exame Geral")),
                 ],
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      servicoSelecionado = value;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _petController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Nome do Pet",
+                  hintText: "Ex: Rex, Mel, Thor...",
+                  prefixIcon: Icon(Icons.pets),
+                ),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _telefoneController,
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Telefone de Contato",
+                  hintText: "(xx) xxxxx-xxxx",
+                  prefixIcon: Icon(Icons.phone),
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll<Color>(
+                    const Color.fromARGB(255, 26, 58, 27),
+                  ),
+                  padding: const WidgetStatePropertyAll<EdgeInsets>(
+                    EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+                onPressed: enviando ? null : agendarNaFila,
+                child: enviando
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Text(
+                        "Agendar e Entrar na Fila",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancelar", style: TextStyle(color: Colors.black87)),
               ),
             ],
           ),

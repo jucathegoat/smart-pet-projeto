@@ -1,310 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/tela_novo_agendamento.dart';
-import 'package:http/http.dart' as http;
 
-import 'dart:convert';
 
-class TelaAgendamento extends StatefulWidget {
-  const TelaAgendamento({super.key, required this.cpf});
-
-  final String cpf;
+class TelaNovoAgendamento extends StatefulWidget {
+  const TelaNovoAgendamento({super.key});
 
   @override
-  TelaAgendamentoState createState() => TelaAgendamentoState();
+  State<TelaNovoAgendamento> createState() => _TelaNovoAgendamentoState();
 }
 
-class TelaAgendamentoState extends State<TelaAgendamento> {
-  List<dynamic> agendamentos = [];
-  bool carregando = true;
-  String? erro;
-
-  final String baseUrl = 'http://localhost:8080';
+class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
+  final _petController = TextEditingController();
+  DateTime? _dataSelecionada;
+  TimeOfDay? _horaSelecionada;
 
   @override
-  void initState() {
-    super.initState();
-    carregarAgendamentos();
+  void dispose() {
+    _petController.dispose();
+    super.dispose();
   }
 
-  Future<void> carregarAgendamentos() async {
-    setState(() {
-      carregando = true;
-      erro = null;
-    });
-
-    try {
-      final resposta = await http.get(
-        Uri.parse('${baseUrl}/agendamentos/${widget.cpf}'),
-      );
-
-      if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
-
-        if (dados['sucesso'] == true) {
-          setState(() {
-            agendamentos = dados['agendamentos'] ?? [];
-          });
-        } else {
-          setState(() {
-            erro = 'Não foi possível carregar seus agendamentos.';
-          });
-        }
-      } else {
-        setState(() {
-          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        erro = 'Não foi possível conectar à API.';
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          carregando = false;
-        });
-      }
-    }
-  }
-
-  Future<void> cancelarAgendamentos(int idagenda) async {
-    var url = Uri.parse('http://localhost:8080/atualizar/agendamento');
-    var resposta = await http.put(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'idagenda': idagenda, 'status': 'Cancelado'}),
+  Future<void> _selecionarData() async {
+    final data = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
+    if (data != null) setState(() => _dataSelecionada = data);
   }
 
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'em andamento':
-        return Colors.orange;
-      case 'concluído':
-        return Colors.green;
-      case 'cancelado':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
+  Future<void> _selecionarHora() async {
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (hora != null) setState(() => _horaSelecionada = hora);
   }
 
-  Color _statusBackground(String status) {
-    switch (status.toLowerCase()) {
-      case 'em andamento':
-        return Colors.orange.shade100;
-      case 'concluído':
-        return Colors.green.shade100;
-      case 'cancelado':
-        return Colors.grey.shade200;
-      default:
-        return Colors.grey.shade200;
+  void _confirmarAgendamento() {
+    if (_petController.text.isEmpty ||
+        _dataSelecionada == null ||
+        _horaSelecionada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha todos os campos')),
+      );
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Agendamento realizado!')),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Builder(
-          builder: (context) {
-            if (carregando) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (erro != null) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(erro!),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: carregarAgendamentos,
-                      child: const Text('Tentar novamente'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (agendamentos.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Não há nenhum agendamento',
-                  textAlign: TextAlign.center,
-                ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: carregarAgendamentos,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: agendamentos.length,
-                itemBuilder: (context, index) {
-                  final agendamento = agendamentos[index];
-
-                  return Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: const Color.fromARGB(255, 249, 243, 243),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Cabeçalho com nome e status
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.pets, color: Colors.indigo),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    agendamento['nome_pet'] ?? 'Sem nome',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // Badge de status
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _statusBackground(
-                                    agendamento['status'] ?? '',
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  agendamento['status'] ?? 'Pendente',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: _statusColor(
-                                      agendamento['status'] ?? '',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "🛁 Especialidade: ${agendamento['nome_servico'] ?? 'Não informada'}",
-                          ),
-                          Text(
-                            "📅 Data: ${agendamento['data'] ?? 'Não informada'}",
-                          ),
-                          Text(
-                            "⏰ Hora: ${agendamento['hora'] ?? 'Não informada'}",
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Botão de cancelar só aparece se status == "Em andamento"
-                          if ((agendamento['status'] ?? '').toLowerCase() ==
-                              'em andamento')
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(
-                                    255,
-                                    26,
-                                    58,
-                                    27,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.cancel,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  "Cancelar",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Confirmação"),
-                                      content: const Text(
-                                        "Tem certeza que deseja cancelar este agendamento?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text("Não"),
-                                        ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color.fromARGB(
-                                              255,
-                                              26,
-                                              58,
-                                              27,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            "Sim",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            int idagenda =
-                                                agendamento['idagenda'];
-
-                                            await cancelarAgendamentos(
-                                              idagenda,
-                                            );
-                                            carregarAgendamentos();
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TelaNovoAgendamento(cpf: widget.cpf),
+      appBar: AppBar(title: const Text('Novo agendamento')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _petController,
+              decoration: const InputDecoration(labelText: 'Nome do pet'),
             ),
-          );
-        },
-        shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
-        child: Icon(Icons.add, color: Colors.white),
-        backgroundColor: Color.fromARGB(255, 26, 58, 27),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selecionarData,
+                    child: Text(_dataSelecionada == null
+                        ? 'Escolher data'
+                        : '${_dataSelecionada!.day}/${_dataSelecionada!.month}/${_dataSelecionada!.year}'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selecionarHora,
+                    child: Text(_horaSelecionada == null
+                        ? 'Escolher hora'
+                        : _horaSelecionada!.format(context)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _confirmarAgendamento,
+              child: const Text('Confirmar agendamento'),
+            ),
+          ],
+        ),
       ),
     );
   }

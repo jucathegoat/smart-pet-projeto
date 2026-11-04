@@ -25,7 +25,7 @@ class TelaLoginState extends State<TelaLogin> {
 
 
   Future<void> fazerLoign() async {
-    var url = Uri.parse('http://localhost:8080/login/usuario');
+    var url = Uri.parse('http://localhost:8086/login/usuario');
     var resposta = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -51,7 +51,7 @@ class TelaLoginState extends State<TelaLogin> {
       }
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Usuário ou senha incorretos')));
+          .showSnackBar(SnackBar(content: Text('UsuÃƒÂ¡rio ou senha incorretos')));
     }
   }
 
@@ -93,7 +93,7 @@ class TelaLoginState extends State<TelaLogin> {
                   obscureText: false,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Usuário",
+                    labelText: "UsuÃƒÂ¡rio",
                   ),
                 ),
               ),
@@ -115,7 +115,7 @@ class TelaLoginState extends State<TelaLogin> {
                   if (usuarioControler.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Por favor, insira um usuário válido.'),
+                        content: Text('Por favor, insira um usuÃƒÂ¡rio vÃƒÂ¡lido.'),
                         duration: Duration(seconds: 2),
                       ),
                     );

@@ -20,10 +20,9 @@ String telefone = '';
 String endereco = '';
 String usuario = '';
 String senha = '';
-String statusConta = 'ativo';
 
 Future<void> cadastrarUsuario() async {
-  var url = Uri.parse('http://localhost:8080/usuario');
+  var url = Uri.parse('http://localhost:8086/usuario');
   var resposta = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
@@ -31,11 +30,9 @@ Future<void> cadastrarUsuario() async {
       'nome': nome,
       'cpf': cpf,
       'email': email,
-      'telefone':telefone,
       'endereco': endereco,
       'usuario': usuario,
       'senha': senha,
-      'status_conta':statusConta
     }),
   );
 
@@ -52,10 +49,9 @@ Future<void> cadastrarUsuario() async {
     endereco = '';
     usuario = '';
     senha = '';
-    
   } else {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao cadastrar usuário')),
+      SnackBar(content: Text('Erro ao cadastrar usuÃƒÂ¡rio')),
     );
   }
 }
@@ -135,8 +131,8 @@ Future<void> cadastrarUsuario() async {
               TextField(
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "Endereço",
-                  hintText: "Digite seu endereço",
+                  labelText: "EndereÃƒÂ§o",
+                  hintText: "Digite seu endereÃƒÂ§o",
                 ),
                 onChanged: (value) {
                   setState(() {

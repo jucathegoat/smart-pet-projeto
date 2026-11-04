@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class TelaLoja extends StatefulWidget {
   const TelaLoja({super.key});
@@ -10,150 +10,138 @@ class TelaLoja extends StatefulWidget {
 }
 
 class _TelaLojaState extends State<TelaLoja> {
-  late Future<List<Map<String, dynamic>>> _produtosFuture;
+  List<dynamic> _produtos = [];
+  bool _carregando = true;
 
   @override
   void initState() {
     super.initState();
-    _produtosFuture = listarProdutos();
+    _buscarProdutos();
   }
 
-  Future<List<Map<String, dynamic>>> listarProdutos() async {
-    final response = await http.get(Uri.parse("http://localhost:8080/produto"));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data["sucesso"] == true) {
-        final List<dynamic> lista = data["produtos"];
-        return lista.map((item) => {
-          "id": item["id_produto"],
-          "nome": item["nome"],
-          "marca": item["marca"],
-          "tipo": item["tipo"],
-          "estoque": item["estoque"],
-          "preco": item["preco"],
-          "codigo": item["codigo"],
-          "url": item["url"],
-        }).toList();
+  Future<void> _buscarProdutos() async {
+    setState(() => _carregando = true);
+    try {
+      final response = await http.get(Uri.parse('http://localhost:8086/api/produtos'));
+      if (response.statusCode == 200) {
+        final List<dynamic> dados = jsonDecode(utf8.decode(response.bodyBytes));
+        setState(() {
+          _produtos = dados;
+          _carregando = false;
+        });
       } else {
-        throw Exception("API retornou sucesso = false");
+        setState(() => _carregando = false);
       }
-    } else {
-      throw Exception("Erro ao carregar produtos");
+    } catch (e) {
+      setState(() => _carregando = false);
     }
-  }
-
-  Future<void> _refresh() async {
-    setState(() {
-      _produtosFuture = listarProdutos();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _produtosFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Erro: ${snapshot.error}"));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("Não há Produtos Disponíveis"));
-            }
-
-            final produtos = snapshot.data!;
-            return GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 0.75,
-              ),
-              itemCount: produtos.length,
-              itemBuilder: (context, index) {
-                final produto = produtos[index];
-                return Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+      backgroundColor: const Color(0xFFF9F7F5),
+      appBar: AppBar(
+        title: const Text('Produtos & Pet Shop', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: const Color(0xFF1B5E20),
+        foregroundColor: Colors.white,
+        elevation: 1,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _buscarProdutos,
+            tooltip: 'Recarregar Produtos',
+          )
+        ],
+      ),
+      body: _carregando
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF1B5E20)))
+          : _produtos.isEmpty
+              ? Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(12)),
-                          child: Image.network(
-                            produto['url'],
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.image_not_supported),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              produto['nome'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              "Marca: ${produto['marca']}",
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "R\$ ${produto['preco'].toString()}",
-                              style: const TextStyle(
-                                color: Colors.indigo,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.indigo,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              icon: const Icon(Icons.add_shopping_cart,
-                                  color: Colors.white),
-                              label: const Text("Adicionar",
-                                  style: TextStyle(color: Colors.white)),
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "${produto['nome']} adicionado ao carrinho!"),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                      Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 12),
+                      const Text('NÃ£o hÃ¡ Produtos DisponÃ­veis', style: TextStyle(fontSize: 16, color: Colors.grey)),
                     ],
                   ),
-                );
-              },
-            );
-          },
-        ),
-      ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _buscarProdutos,
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(12),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.82,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: _produtos.length,
+                    itemBuilder: (context, index) {
+                      final prod = _produtos[index];
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 2,
+                        clipBehavior: Clip.antiAlias,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.pets, size: 40, color: Color(0xFF2E7D32)),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                prod['nome'] ?? 'Produto',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const Spacer(),
+                              Text(
+                                prod['marca'] ?? 'SmartPet',
+                                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'R$ ${prod['preco']}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: Color(0xFF1B5E20),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${prod['estoque']} un',
+                                    style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
     );
   }
 }

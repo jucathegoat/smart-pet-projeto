@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'tela_pets.dart';
 
 import 'dart:convert';
@@ -15,11 +14,8 @@ class TelaCadastroPet extends StatefulWidget {
 }
 
 class _TelaCadastroPetState extends State<TelaCadastroPet> {
+
   final nomeControler = TextEditingController();
-  final especieControler = TextEditingController();
-  final porteControler = TextEditingController();
-  final pesoControler = TextEditingController();
-  final nDocumentoControler = TextEditingController();
   final racaControler = TextEditingController();
   final idadeControler = TextEditingController();
 
@@ -28,27 +24,19 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
     nomeControler.dispose();
     racaControler.dispose();
     idadeControler.dispose();
-    especieControler.dispose();
-    porteControler.dispose();
-    pesoControler.dispose();
-    nDocumentoControler.dispose();
     super.dispose();
   }
 
   Future<void> cadastrarPet() async {
-    var url = Uri.parse('http://localhost:8080/cadastrar/pet');
+    var url = Uri.parse('http://localhost:8086/cadastrar/pet');
     var resposta = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'cpf': widget.cpf,
         'nome': nomeControler.text,
-        'especie': especieControler.text,
-        'raca': racaControler.text,
-        'porte': porteControler.text,
-        'peso': pesoControler.text,
-        'n_documento': nDocumentoControler.text,
-        'idade': int.parse(idadeControler.text),
+        'especie': racaControler.text,
+        'idade': int.parse(idadeControler.text)
       }),
     );
 
@@ -94,47 +82,11 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
               ),
               SizedBox(height: 10),
               TextField(
-                controller: nDocumentoControler,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Nº Documento",
-                  hintText: "Digite o nº Documento do seu pet",
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: especieControler,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Espécie",
-                  hintText: "Digite a espécie do seu pet",
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
                 controller: racaControler,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: "Raça",
-                  hintText: "Digite a raça do seu pet",
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: porteControler,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Porte",
-                  hintText: "Digite o porte do seu pet",
-                ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: pesoControler,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Peso",
-                  hintText: "Digite o peso do seu pet",
+                  labelText: "EspÃƒÂ©cie",
+                  hintText: "Digite a espÃƒÂ©cie do seu pet",
                 ),
               ),
               SizedBox(height: 10),
@@ -157,9 +109,10 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                         Color.fromARGB(255, 26, 58, 27),
                       ),
                     ),
-                    onPressed: () async {
-                      await cadastrarPet();
-                      Navigator.pop(context);
+                    onPressed: () {
+                      cadastrarPet();
+                      Navigator.push(context,
+                      MaterialPageRoute(builder: (builder) => TelaPets(cpf: widget.cpf)));
                     },
                     child: const Text("Cadastrar"),
                   ),
@@ -171,7 +124,7 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                       ),
                     ),
                     onPressed: () {
-                      // Lógica para voltar à tela anterior
+                      // LÃƒÂ³gica para voltar ÃƒÂ  tela anterior
                       Navigator.pop(context);
                     },
                     child: const Text("Voltar"),

@@ -9,7 +9,7 @@ class TelaAvaliacao extends StatefulWidget {
   const TelaAvaliacao({
     super.key,
     this.servicoId,
-    this.urlApi = 'http://localhost:8080/api/avaliacoes',
+    this.urlApi = 'http://localhost:8086/api/avaliacoes',
   });
 
   @override
@@ -27,7 +27,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     carregarItensPendentes();
   }
 
-  // Busca na API os atendimentos finalizados pendentes de avaliação
+  // Busca na API os atendimentos finalizados pendentes de avaliaÃƒÂ§ÃƒÂ£o
   Future<void> carregarItensPendentes() async {
     setState(() {
       carregando = true;
@@ -45,7 +45,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
           itensParaAvaliar = dados is List ? dados : (dados['itens'] ?? []);
         });
       } else if (resposta.statusCode == 404) {
-        // Se a rota não existir no backend, trata como lista vazia
+        // Se a rota nÃƒÂ£o existir no backend, trata como lista vazia
         setState(() {
           itensParaAvaliar = [];
         });
@@ -55,7 +55,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
         });
       }
     } catch (e) {
-      // Se não houver conexão, não trava a tela com erro grave
+      // Se nÃƒÂ£o houver conexÃƒÂ£o, nÃƒÂ£o trava a tela com erro grave
       setState(() {
         itensParaAvaliar = [];
       });
@@ -68,7 +68,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     }
   }
 
-  // Envia a nota do serviço finalizado
+  // Envia a nota do serviÃƒÂ§o finalizado
   Future<void> _enviarAvaliacao(int servicoId, int nota) async {
     try {
       final response = await http.post(
@@ -84,7 +84,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Obrigado pela sua avaliação!')),
+          const SnackBar(content: Text('Obrigado pela sua avaliaÃƒÂ§ÃƒÂ£o!')),
         );
         carregarItensPendentes(); // Remove o item avaliado da lista
       } else {
@@ -95,7 +95,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro de conexão: $e')),
+          SnackBar(content: Text('Erro de conexÃƒÂ£o: $e')),
         );
       }
     }
@@ -104,8 +104,17 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fundo em tom creme/suave idêntico à Tela de Pets
-      backgroundColor: const Color.fromARGB(255, 249, 243, 243),
+      // Fundo em tom creme/suave idÃƒÂªntico ÃƒÂ  Tela de Pets
+      backgroundColor: const Color.fromARGB(255, 255, 252, 243),
+      appBar: AppBar(
+        title: const Text(
+          'Avaliar Atendimento',
+          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color.fromARGB(255, 249, 243, 243),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
       body: SafeArea(
         child: Builder(
           builder: (context) {
@@ -131,11 +140,11 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
               );
             }
 
-            // MENSAGEM QUANDO NÃO HOUVER ATENDIMENTOS FINALIZADOS
+            // MENSAGEM QUANDO NÃƒÆ’O HOUVER ATENDIMENTOS FINALIZADOS
             if (itensParaAvaliar.isEmpty) {
               return const Center(
                 child: Text(
-                  'Não contem item para avaliar',
+                  'NÃƒÂ£o contem item para avaliar',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               );
@@ -157,7 +166,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 249, 243, 243), // Mesma cor do card dos pets
+                      color: const Color.fromARGB(255, 245, 242, 248), // Mesma cor do card dos pets
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -166,14 +175,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Ícone da pata à esquerda
+                            // ÃƒÂcone da pata ÃƒÂ  esquerda
                             const Icon(
                               Icons.pets,
                               color: Color.fromARGB(255, 70, 70, 70),
                               size: 28,
                             ),
                             const SizedBox(width: 16),
-                            // Informações do Chamado / Pet
+                            // InformaÃƒÂ§ÃƒÂµes do Chamado / Pet
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,14 +197,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Serviço: $servico',
+                                    'ServiÃƒÂ§o: $servico',
                                     style: TextStyle(
                                       fontSize: 13,
                                       color: Colors.grey.shade700,
                                     ),
                                   ),
                                   Text(
-                                    'Status: Concluído',
+                                    'Status: ConcluÃƒÂ­do',
                                     style: TextStyle(
                                       fontSize: 12,
                                       color: Colors.green.shade700,
@@ -212,7 +221,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                           child: Divider(height: 1),
                         ),
                         const Text(
-                          'Como foi o serviço?',
+                          'Como foi o serviÃƒÂ§o?',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -220,7 +229,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Botões de Avaliação integrados no próprio Card
+                        // BotÃƒÂµes de AvaliaÃƒÂ§ÃƒÂ£o integrados no prÃƒÂ³prio Card
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -269,3 +278,4 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     );
   }
 }
+
