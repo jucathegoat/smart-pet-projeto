@@ -9,7 +9,7 @@ class TelaAvaliacao extends StatefulWidget {
   const TelaAvaliacao({
     super.key,
     this.servicoId,
-    this.urlApi = 'http://localhost:8080/api/avaliacoes',
+    this.urlApi = 'http://localhost:8086/api/avaliacoes',
   });
 
   @override
@@ -105,7 +105,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Fundo em tom creme/suave idêntico à Tela de Pets
-      backgroundColor: const Color.fromARGB(255, 249, 243, 243),
+      backgroundColor: const Color.fromARGB(255, 251, 248, 255),
       body: SafeArea(
         child: Builder(
           builder: (context) {
@@ -157,7 +157,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 249, 243, 243), // Mesma cor do card dos pets
+                      color: const Color.fromARGB(255, 245, 242, 248), // Mesma cor do card dos pets
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(
@@ -166,14 +166,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Ícone da pata à esquerda
+                            // ÃƒÂcone da pata à esquerda
                             const Icon(
                               Icons.pets,
                               color: Color.fromARGB(255, 70, 70, 70),
                               size: 28,
                             ),
                             const SizedBox(width: 16),
-                            // Informações do Chamado / Pet
+                            // InformaçÃƒÂµes do Chamado / Pet
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,7 +220,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Botões de Avaliação integrados no próprio Card
+                        // BotÃƒÂµes de Avaliação integrados no próprio Card
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -269,3 +269,4 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     );
   }
 }
+

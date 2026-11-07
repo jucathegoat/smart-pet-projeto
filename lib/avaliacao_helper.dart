@@ -4,7 +4,7 @@ import 'dart:convert';
 
 Future<void> enviarAvaliacao(BuildContext context, int servicoId, int nota) async {
  
-  final url = Uri.parse('http://localhost:8080/api/avaliacoes'); 
+  final url = Uri.parse('http://localhost:8086/api/avaliacoes'); 
 
   try {
     final response = await http.post(

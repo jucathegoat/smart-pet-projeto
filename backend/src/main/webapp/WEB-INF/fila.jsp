@@ -5,60 +5,87 @@
 <head>
     <meta charset="UTF-8">
     <title>Fila de Atendimento - Smart Pet Admin</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <meta http-equiv="refresh" content="5">
 </head>
 <body>
     <header class="navbar">
         <div class="logo">🐾 Smart Pet Admin</div>
         <nav>
-            <a href="FilaServlet" class="active">Fila em Tempo Real</a>
-            <a href="clientes.jsp">Consultar Clientes</a>
+            <a href="/fila">Fila</a>
+            <a href="/pets">Pets</a>
+            <a href="/clientes">Clientes</a>
+            <a href="/loja">Loja</a>
+            <a href="/avaliacoes">Avaliações</a>
+            <a href="/notificacoes">Notificações</a>
+            <a href="/logout" style="color: #ffcdd2;">Sair</a>
         </nav>
     </header>
 
     <main class="container">
-        <h2>Fila de Atendimento</h2>
+        <h2>Fila de Atendimento (Integrada com App Flutter)</h2>
+        <p style="color: #666; margin-bottom: 1.5rem;">Novos agendamentos feitos no aplicativo entram diretamente nesta lista em tempo real.</p>
 
-        <!-- Botão que envia a requisição direta para o Java -->
-        <div class="acoes-topo">
-            <form action="FilaServlet" method="POST">
-                <input type="hidden" name="acao" value="chamarProximo">
+        <div class="acoes-topo" style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+            <form action="/fila/acao" method="POST">
+                <input type="hidden" name="acao" value="chamar">
                 <button type="submit" class="btn btn-sucesso">📢 Chamar Próximo Paciente</button>
             </form>
+            <a href="/admin/agendamentos/novo" class="btn" style="background-color: #2e7d32; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 6px; font-weight: 600;">➕ Novo Agendamento Manual</a>
         </div>
 
         <table class="tabela">
             <thead>
                 <tr>
-                    <th>Posição</th>
-                    <th>Cliente</th>
+                    <th>#ID</th>
+                    <th>Cliente / Tutor</th>
                     <th>Pet</th>
                     <th>Serviço</th>
                     <th>Chegada</th>
+                    <th>Espera</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <c:forEach var="item" items="${listaFila}" varStatus="loop">
+                <c:forEach var="item" items="">
                     <tr>
-                        <td>${loop.index + 1}</td>
-                        <td>${item.nomeCliente}</td>
-                        <td>${item.nomePet}</td>
-                        <td>${item.servico}</td>
-                        <td>${item.horarioChegada}</td>
-                        <td><span class="badge ${item.statusClass}">${item.status}</span></td>
+                        <td><strong>#</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td> min</td>
+                        <td><span class="badge "></span></td>
                         <td>
-                            <!-- Formulário direto para cancelamento com justificativa obrigatória nativa -->
-                            <form action="FilaServlet" method="POST" style="display:inline-block;">
-                                <input type="hidden" name="acao" value="cancelar">
-                                <input type="hidden" name="idAtendimento" value="${item.id}">
-                                <input type="text" name="motivo" placeholder="Motivo do cancelamento" required class="input-inline">
-                                <button type="submit" class="btn btn-perigo">Cancelar</button>
-                            </form>
+                            <c:if test="">
+                                <form action="/fila/acao" method="POST" style="display:inline;">
+                                    <input type="hidden" name="acao" value="chamar">
+                                    <button type="submit" class="btn btn-sucesso btn-sm">Atender</button>
+                                </form>
+                            </c:if>
+                            <c:if test="">
+                                <form action="/fila/acao" method="POST" style="display:inline;">
+                                    <input type="hidden" name="acao" value="concluir">
+                                    <input type="hidden" name="id" value="">
+                                    <button type="submit" class="btn btn-sucesso btn-sm">Concluir</button>
+                                </form>
+                            </c:if>
+                            <c:if test="">
+                                <form action="/fila/acao" method="POST" style="display:inline;">
+                                    <input type="hidden" name="acao" value="cancelar">
+                                    <input type="hidden" name="id" value="">
+                                    <button type="submit" class="btn btn-cancelar btn-sm" onclick="return confirm('Deseja cancelar este agendamento?')">Cancelar</button>
+                                </form>
+                            </c:if>
                         </td>
                     </tr>
                 </c:forEach>
+                <c:if test="">
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #888; padding: 2rem;">A fila de atendimento está vazia no momento.</td>
+                    </tr>
+                </c:if>
             </tbody>
         </table>
     </main>

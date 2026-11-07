@@ -85,7 +85,7 @@ class TelaLoginState extends State<TelaLogin> {
             children: [
               Image.asset(
                 'assets/images/logo.png',
-                height: 170,
+                height: 200,
                 fit: BoxFit.cover,
               ),
               SizedBox(height: 70),
