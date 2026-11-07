@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'tela_pets.dart';
-
 import 'dart:convert';
 
 class TelaCadastroPet extends StatefulWidget {
@@ -22,6 +20,14 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
   final nDocumentoControler = TextEditingController();
   final racaControler = TextEditingController();
   final idadeControler = TextEditingController();
+
+  String? erroNome;
+  String? erroEspecie;
+  String? erroRaca;
+  String? erroPorte;
+  String? erroPeso;
+  String? erroNDocumento;
+  String? erroIdade;
 
   @override
   void dispose() {
@@ -86,10 +92,22 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
               SizedBox(height: 20),
               TextField(
                 controller: nomeControler,
+                onChanged: (value) {
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroNome = null;
+                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
+                      erroNome = 'O nome deve conter apenas letras';
+                    } else {
+                      erroNome = null;
+                    }
+                  });
+                },
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   labelText: "Nome do Pet",
                   hintText: "Digite o nome do seu pet",
+                  errorText: erroNome,
                 ),
               ),
               SizedBox(height: 10),
@@ -104,47 +122,107 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
               SizedBox(height: 10),
               TextField(
                 controller: especieControler,
+                onChanged: (value){
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroEspecie = null;
+                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
+                      erroEspecie = 'A espécie deve conter apenas letras';
+                    } else {
+                      erroEspecie = null;
+                    }
+                  }); 
+                },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Espécie",
                   hintText: "Digite a espécie do seu pet",
+                  errorText: erroEspecie,
                 ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: racaControler,
+                onChanged: (value){
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroRaca = null;
+                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
+                      erroRaca = 'A raça deve conter apenas letras';
+                    } else {
+                      erroRaca = null;
+                    }
+                  }); 
+                },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Raça",
                   hintText: "Digite a raça do seu pet",
+                  errorText: erroRaca,
                 ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: porteControler,
+                onChanged: (value){
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroPorte = null;
+                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
+                      erroPorte = 'O porte deve conter apenas letras';
+                    } else {
+                      erroPorte = null;
+                    }
+                  }); 
+                },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Porte",
                   hintText: "Digite o porte do seu pet",
+                  errorText: erroPorte,
                 ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: pesoControler,
+                onChanged: (value){
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroPeso = null;
+                    } else if (!RegExp(r'^\d+(\.\d+)?$').hasMatch(value)) {
+                      erroPeso = 'O peso deve ser um número válido';
+                    } else {
+                      erroPeso = null;
+                    }
+                  }); 
+                },
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Peso",
                   hintText: "Digite o peso do seu pet",
+                  errorText: erroPeso,
                 ),
               ),
               SizedBox(height: 10),
               TextField(
                 controller: idadeControler,
+                onChanged: (value){
+                  setState(() {
+                    if (value.isEmpty) {
+                      erroIdade = null;
+                    } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+                      erroIdade = 'A idade deve ser um número inteiro';
+                    } else {
+                      erroIdade = null;
+                    }
+                  }); 
+                },
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: "Idade",
                   hintText: "Digite a idade do seu pet",
+                  errorText: erroIdade,
                 ),
               ),
               SizedBox(height: 20),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/tela_agendamento.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -158,8 +157,8 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
                 ),
                 items: listaServicos.map<DropdownMenuItem<String>>((servico) {
                   return DropdownMenuItem<String>(
-                    value: servico['codigoServico'].toString(), // valor interno
-                    child: Text(servico['nome']), // texto exibido
+                    value: servico['codigoServico'].toString(),
+                    child: Text(servico['nome']),
                   );
                 }).toList(),
                 onChanged: (value) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/tela_login.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -22,6 +23,48 @@ String usuario = '';
 String senha = '';
 String statusConta = 'ativo';
 
+String? erroNome;
+String? erroCpf;
+String? erroEmail;
+String? erroTelefone;
+String? erroEndereco;
+String? erroUsuario;
+String? erroSenha;
+
+
+bool validarCPF(String cpf) {
+  cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+  if (cpf.length != 11) return false;
+
+  if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) {
+    return false;
+  }
+
+  int soma = 0;
+  for (int i = 0; i < 9; i++) {
+    soma += int.parse(cpf[i]) * (10 - i);
+  }
+
+  int resto = soma % 11;
+  int digito1 = resto < 2 ? 0 : 11 - resto;
+
+  if (int.parse(cpf[9]) != digito1) {
+    return false;
+  }
+
+  soma = 0;
+  for (int i = 0; i < 10; i++) {
+    soma += int.parse(cpf[i]) * (11 - i);
+  }
+
+  resto = soma % 11;
+  int digito2 = resto < 2 ? 0 : 11 - resto;
+
+  return int.parse(cpf[10]) == digito2;
+}
+
+
 Future<void> cadastrarUsuario() async {
   var url = Uri.parse('http://localhost:8080/usuario');
   var resposta = await http.post(
@@ -29,7 +72,7 @@ Future<void> cadastrarUsuario() async {
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'nome': nome,
-      'cpf': cpf,
+      'cpf': cpf.replaceAll('.', ''),
       'email': email,
       'telefone':telefone,
       'endereco': endereco,
@@ -85,10 +128,19 @@ Future<void> cadastrarUsuario() async {
                   border: OutlineInputBorder(),
                   labelText: "Nome",
                   hintText: "Digite seu nome completo",
+                  errorText: erroNome,
                 ),
-                onChanged: (value) {
+                    onChanged: (value) {
                   setState(() {
-                    nome = value;
+                    if (value.isEmpty) {
+                      erroNome = null;
+                      nome = value;
+                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
+                      erroNome = 'O nome deve conter apenas letras';
+                    } else {
+                      erroNome = null;
+                      nome = value;
+                    }
                   });
                 },
               ),
@@ -98,10 +150,19 @@ Future<void> cadastrarUsuario() async {
                   border: OutlineInputBorder(),
                   labelText: "CPF",
                   hintText: "Digite seu CPF",
+                  errorText: erroCpf,
                 ),
                 onChanged: (value) {
                   setState(() {
-                    cpf = value;
+                    if (value.isEmpty){
+                      erroCpf = null;
+                      cpf = value;
+                    }else if (!validarCPF(value)) {
+                      erroCpf = 'CPF inválido, use o formato: 000.000.000-00';
+                    } else {
+                      erroCpf = null;
+                      cpf = value;
+                    }
                   });
                 },
               ),
@@ -111,10 +172,19 @@ Future<void> cadastrarUsuario() async {
                   border: OutlineInputBorder(),
                   labelText: "Email",
                   hintText: "Digite seu email",
+                  errorText: erroEmail,
                 ),
                 onChanged: (value) {
                   setState(() {
-                    email = value;
+                    if (value.isEmpty) {
+                      erroEmail = null;
+                      email = value;
+                    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      erroEmail = 'Email inválido';
+                    } else {
+                      erroEmail = null;
+                      email = value;
+                    }
                   });
                 },
               ),
@@ -124,10 +194,19 @@ Future<void> cadastrarUsuario() async {
                   border: OutlineInputBorder(),
                   labelText: "Telefone",
                   hintText: "(xx) xxxxx-xxxx",
+                  errorText: erroTelefone,
                 ),
                 onChanged: (value) {
                   setState(() {
-                    telefone = value;
+                    if (value.isEmpty) {
+                      erroTelefone = null;
+                      telefone = value;
+                    } else if (!RegExp(r'^\(\d{2}\) \d{4,5}-\d{4}$').hasMatch(value)) {
+                      erroTelefone = 'Telefone inválido, use o formato: (xx) xxxxx-xxxx';
+                    } else {
+                      erroTelefone = null;
+                      telefone = value;
+                    }
                   });
                 },
               ),
@@ -176,8 +255,14 @@ Future<void> cadastrarUsuario() async {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FilledButton(
-                    onPressed: () {
-                      cadastrarUsuario();
+                    onPressed: () async{
+                      if (nome.isEmpty || cpf.isEmpty || email.isEmpty || telefone.isEmpty || endereco.isEmpty || usuario.isEmpty || senha.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Por favor, preencha todos os campos.')),
+                        );
+                        return;
+                      }
+                     await cadastrarUsuario();
                       Navigator.pop(context);
                     },
                     style: ButtonStyle(

@@ -49,9 +49,12 @@ class TelaLoginState extends State<TelaLogin> {
           ),
         );
       }
+    } else if (resposta.statusCode == 500) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Ops! Ocorreu um erro no servidor.')));
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Usuário ou senha incorretos')));
+          .showSnackBar(SnackBar(content: Text('Usuário ou senha inválidos.')));
     }
   }
 
@@ -94,6 +97,7 @@ class TelaLoginState extends State<TelaLogin> {
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Usuário",
+                    suffixIcon: Icon(Icons.person),
                   ),
                 ),
               ),
@@ -106,6 +110,7 @@ class TelaLoginState extends State<TelaLogin> {
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Senha",
+                    suffixIcon: Icon(Icons.key),
                   ),
                 ),
               ),

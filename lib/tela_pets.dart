@@ -188,7 +188,7 @@ class _TelaPetsState extends State<TelaPets> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) =>
-                                              TelaEdicaoPet(codigoPet: id),
+                                              TelaEdicaoPet(codigoPet: id, nDocumento: pet['n_documento'] ?? '', peso: pet['peso'] ?? 0, idade: pet['idade'] ?? 0),
                                         ),
                                       );
                                     },

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'tela_agendamento.dart';
 import 'loja.dart';
 import 'tela_pets.dart';
-import 'notificacoes.dart';
 import 'tela_login.dart';
 import 'tela_avaliacao.dart';
 
@@ -141,16 +140,6 @@ class HomeContent extends StatelessWidget {
                   ),
                   softWrap: true,
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications,
-                    color: Color.fromARGB(255, 194, 194, 194)),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Notificacoes()),
-                  );
-                },
               ),
             ],
           ),

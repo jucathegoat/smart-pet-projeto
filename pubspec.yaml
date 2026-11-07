@@ -19,6 +19,7 @@ dependencies:
   shelf_router: ^1.1.4
   dart_jsonwebtoken: ^3.4.1
   flutter_dotenv: ^6.0.1
+  mask_text_input_formatter: ^2.9.0
 
 
 dev_dependencies:
