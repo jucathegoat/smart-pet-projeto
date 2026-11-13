@@ -1,0 +1,55 @@
+name: CI do Petshop
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # 1. Job para a aplicação Java (Web) - Em desenvolvimento
+  build-java:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copiar código
+        uses: actions/checkout@v4
+      - name: Backend em desenvolvimento
+        run: |
+          echo "O código do backend Java está em fase de estruturação."
+
+  # 2. Job para a aplicação Flutter (Mobile)
+  build-flutter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Copiar código
+        uses: actions/checkout@v4
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+      - name: Verificar dependências e análise do Flutter
+        run: |
+          flutter pub get
+          flutter analyze
+
+  # 3. Job para o MySQL (Banco de dados)
+  test-database:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: petshop_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -h localhost" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Copiar código
+        uses: actions/checkout@v4
+      
+      - name: Testar conexão do Banco
+        run: |
+          echo "O banco MySQL subiu com sucesso!"

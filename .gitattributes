@@ -1,0 +1,18 @@
+# Todo arquivo de texto fica com quebra de linha LF dentro do repositorio,
+# mesmo que o Git do Windows converta para CRLF na pasta de trabalho.
+* text=auto eol=lf
+
+# Scripts do Windows precisam de CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Arquivos binarios: o Git nao deve mexer
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.jar binary
+*.ttf binary
+*.otf binary
