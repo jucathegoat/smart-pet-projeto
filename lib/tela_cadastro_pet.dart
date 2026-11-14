@@ -237,7 +237,7 @@ class _TelaCadastroPetState extends State<TelaCadastroPet> {
                     ),
                     onPressed: () async {
                       await cadastrarPet();
-                      Navigator.pop(context);
+                      Navigator.pop(context, true); // Retorna true para indicar que o pet foi cadastrado com sucesso
                     },
                     child: const Text("Cadastrar"),
                   ),

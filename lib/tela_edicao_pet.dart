@@ -147,7 +147,7 @@ String? erroIdade;
                     ),
                     onPressed: () async {
                       await atualizarPet();
-                      Navigator.pop(context);
+                      Navigator.pop(context,true);
                     },
                     child: const Text("Atualizar"),
                   ),

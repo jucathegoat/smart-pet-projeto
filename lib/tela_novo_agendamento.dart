@@ -219,9 +219,10 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
                         Color.fromARGB(255, 26, 58, 27),
                       ),
                     ),
-                    onPressed: () async{
-                     await salvarAgendamento();
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await salvarAgendamento();
+                      if (!mounted) return;
+                      Navigator.pop(context, true);
                      
                     
                     },

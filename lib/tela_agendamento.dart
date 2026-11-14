@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/tela_novo_agendamento.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +28,8 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
   }
 
   Future<void> carregarAgendamentos() async {
+    if (!mounted) return;
+
     setState(() {
       carregando = true;
       erro = null;
@@ -34,27 +37,36 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
 
     try {
       final resposta = await http.get(
-        Uri.parse('${baseUrl}/agendamentos/${widget.cpf}'),
+        Uri.parse('$baseUrl/agendamentos/${widget.cpf}'),
       );
 
       if (resposta.statusCode == 200) {
         final dados = jsonDecode(resposta.body);
 
         if (dados['sucesso'] == true) {
+          if (!mounted) return;
+
           setState(() {
             agendamentos = dados['agendamentos'] ?? [];
           });
         } else {
+          if (!mounted) return;
+
           setState(() {
             erro = 'Não foi possível carregar seus agendamentos.';
           });
         }
       } else {
+        if (!mounted) return;
+
         setState(() {
-          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
+          erro =
+              'Erro ao consultar os agendamentos (${resposta.statusCode}).';
         });
       }
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         erro = 'Não foi possível conectar à API.';
       });
@@ -68,12 +80,38 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
   }
 
   Future<void> cancelarAgendamentos(int idagenda) async {
-    var url = Uri.parse('http://localhost:8080/atualizar/agendamento');
-    var resposta = await http.put(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'idagenda': idagenda, 'status': 'Cancelado'}),
-    );
+    try {
+      final url = Uri.parse('$baseUrl/atualizar/agendamento');
+
+      final resposta = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'idagenda': idagenda,
+          'status': 'Cancelado',
+        }),
+      );
+
+      if (resposta.statusCode == 200) {
+        await carregarAgendamentos();
+      } else {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Não foi possível cancelar o agendamento.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao conectar com o servidor.'),
+        ),
+      );
+    }
   }
 
   Color _statusColor(String status) {
@@ -102,209 +140,261 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     }
   }
 
+  Future<void> abrirNovoAgendamento() async {
+    final resultado = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaNovoAgendamento(cpf: widget.cpf),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (resultado == true) {
+      await carregarAgendamentos();
+    }
+  }
+
+  Widget _construirConteudo() {
+    if (carregando) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 400,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (erro != null) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 400,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(erro!),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: carregarAgendamentos,
+                    child: const Text('Tentar novamente'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (agendamentos.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          SizedBox(
+            height: 700,
+            child: Center(
+              child: Text(
+                'Não há nenhum agendamento',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      itemCount: agendamentos.length,
+      itemBuilder: (context, index) {
+        final agendamento = agendamentos[index];
+
+        final status = agendamento['status'] ?? '';
+
+        return Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: const Color.fromARGB(255, 249, 243, 243),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cabeçalho com nome e status
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.pets,
+                          color: Colors.indigo,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          agendamento['nome_pet'] ?? 'Sem nome',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Badge de status
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _statusBackground(status),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        status.isEmpty ? 'Pendente' : status,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _statusColor(status),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  "🛁 Especialidade: ${agendamento['nome_servico'] ?? 'Não informada'}",
+                ),
+
+                Text(
+                  "📅 Data: ${agendamento['data'] ?? 'Não informada'}",
+                ),
+
+                Text(
+                  "⏰ Hora: ${agendamento['hora'] ?? 'Não informada'}",
+                ),
+
+                const SizedBox(height: 12),
+
+                // Botão de cancelar
+                if (status.toLowerCase() == 'em andamento')
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          26,
+                          58,
+                          27,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.cancel,
+                        color: Colors.white,
+                      ),
+                      label: const Text(
+                        "Cancelar",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Confirmação"),
+                              content: const Text(
+                                "Tem certeza que deseja cancelar este agendamento?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Não"),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color.fromARGB(
+                                      255,
+                                      26,
+                                      58,
+                                      27,
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    "Sim",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    Navigator.of(context).pop();
+
+                                    final idagenda =
+                                        agendamento['idagenda'];
+
+                                    await cancelarAgendamentos(
+                                      idagenda,
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Builder(
-          builder: (context) {
-            if (carregando) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (erro != null) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(erro!),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: carregarAgendamentos,
-                      child: const Text('Tentar novamente'),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (agendamentos.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Não há nenhum agendamento',
-                  textAlign: TextAlign.center,
-                ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: carregarAgendamentos,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: agendamentos.length,
-                itemBuilder: (context, index) {
-                  final agendamento = agendamentos[index];
-
-                  return Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: const Color.fromARGB(255, 249, 243, 243),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Cabeçalho com nome e status
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.pets, color: Colors.indigo),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    agendamento['nome_pet'] ?? 'Sem nome',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              // Badge de status
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _statusBackground(
-                                    agendamento['status'] ?? '',
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  agendamento['status'] ?? 'Pendente',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: _statusColor(
-                                      agendamento['status'] ?? '',
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "🛁 Especialidade: ${agendamento['nome_servico'] ?? 'Não informada'}",
-                          ),
-                          Text(
-                            "📅 Data: ${agendamento['data'] ?? 'Não informada'}",
-                          ),
-                          Text(
-                            "⏰ Hora: ${agendamento['hora'] ?? 'Não informada'}",
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Botão de cancelar só aparece se status == "Em andamento"
-                          if ((agendamento['status'] ?? '').toLowerCase() ==
-                              'em andamento')
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color.fromARGB(
-                                    255,
-                                    26,
-                                    58,
-                                    27,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.cancel,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  "Cancelar",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Confirmação"),
-                                      content: const Text(
-                                        "Tem certeza que deseja cancelar este agendamento?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: const Text("Não"),
-                                        ),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Color.fromARGB(
-                                              255,
-                                              26,
-                                              58,
-                                              27,
-                                            ),
-                                          ),
-                                          child: const Text(
-                                            "Sim",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            int idagenda =
-                                                agendamento['idagenda'];
-
-                                            await cancelarAgendamentos(
-                                              idagenda,
-                                            );
-                                            carregarAgendamentos();
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
+        child: RefreshIndicator(
+          onRefresh: carregarAgendamentos,
+          child: _construirConteudo(),
         ),
       ),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TelaNovoAgendamento(cpf: widget.cpf),
-            ),
-          );
-        },
-        shape: CircleBorder(side: BorderSide(color: Colors.white, width: 2.0)),
-        child: Icon(Icons.add, color: Colors.white),
-        backgroundColor: Color.fromARGB(255, 26, 58, 27),
+        onPressed: abrirNovoAgendamento,
+        shape: const CircleBorder(
+          side: BorderSide(
+            color: Colors.white,
+            width: 2.0,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
