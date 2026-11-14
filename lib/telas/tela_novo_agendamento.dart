@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '../servicos/api_cliente.dart';
 import 'tela_meus_atendimentos.dart';
 
 class TelaNovoAgendamento extends StatefulWidget {
@@ -40,12 +38,9 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
 
   Future<void> carregarServicos() async {
     try {
-      final resposta = await http.get(
+      final dados = await ApiCliente.getJson(
         Uri.parse('${ApiConfig.baseUrl}/api/servicos'),
       );
-      if (resposta.statusCode != 200) return;
-      final dados =
-          jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
       final lista = (dados['servicos'] as List<dynamic>? ?? [])
           .map(
             (item) => (item as Map<String, dynamic>)['nome']?.toString() ?? '',
@@ -55,12 +50,16 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
       if (lista.isNotEmpty && mounted) {
         setState(() {
           servicos = lista;
-          if (!servicos.contains(servicoSelecionado))
+          if (!servicos.contains(servicoSelecionado)) {
             servicoSelecionado = servicos.first;
+          }
         });
       }
-    } catch (_) {
-      // Mantém opções locais se o servidor ainda não estiver disponível.
+    } on ApiException catch (e) {
+      ApiCliente.logar(e, StackTrace.current);
+      // Mantém as opções locais se o servidor ainda não estiver disponível.
+    } catch (e, s) {
+      ApiCliente.logar(e, s);
     }
   }
 
@@ -86,31 +85,38 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
       return;
     }
 
+    final cpf = (widget.cpfInicial ?? '').trim();
+    if (cpf.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sessão sem CPF: saia e entre novamente para agendar.',
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       enviando = true;
     });
 
     try {
-      // URL do backend Spring Boot onde roda a fila em tempo real
-      final queryParameters = <String, String>{
-        'cliente': cliente,
-        'pet': pet,
-        'servico': servicoSelecionado,
-        if (widget.cpfInicial != null && widget.cpfInicial!.isNotEmpty)
-          'cpf': widget.cpfInicial!,
-      };
-      final url = Uri.parse('${ApiConfig.baseUrl}/api/fila/adicionar')
-          .replace(queryParameters: queryParameters);
-      final resposta = await http.post(url);
+      final dados = await ApiCliente.postJson(
+        Uri.parse('${ApiConfig.baseUrl}/api/fila/adicionar'),
+        corpo: {
+          'cpf': cpf,
+          'cliente': cliente,
+          'pet': pet,
+          'servico': servicoSelecionado,
+        },
+      );
 
       if (!mounted) return;
 
-      if (resposta.statusCode == 200 || resposta.statusCode == 201) {
-        final dados =
-            jsonDecode(utf8.decode(resposta.bodyBytes)) as Map<String, dynamic>;
-        final posicao = dados["posicao"] ?? "-";
-        final esperaMinutos = dados["esperaMinutos"] ?? 0;
-        showDialog(
+      final posicao = dados["posicao"] ?? "-";
+      final esperaMinutos = dados["esperaMinutos"] ?? 0;
+      showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Agendado com sucesso!'),
@@ -132,14 +138,14 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
             ],
           ),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao entrar na fila: ${resposta.statusCode}'),
-          ),
-        );
-      }
-    } catch (e) {
+    } on ApiException catch (e) {
+      ApiCliente.logar(e, StackTrace.current);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.mensagem)),
+      );
+    } catch (e, s) {
+      ApiCliente.logar(e, s);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Não foi possível conectar ao servidor: $e')),

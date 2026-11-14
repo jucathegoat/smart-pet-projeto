@@ -54,3 +54,7 @@ flutter.env
 **/target/
 backend/build-war/
 .env-dev
+
+# Build do Gradle (Android)
+android/build/
+android/app/build/

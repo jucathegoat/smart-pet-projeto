@@ -1,11 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter_application_1/main.dart';
 import 'package:flutter_application_1/telas/tela_cadastro.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '../servicos/api_cliente.dart';
 
 void main() {
   runApp(const TelaLogin());
@@ -18,43 +16,67 @@ class TelaLogin extends StatefulWidget {
   TelaLoginState createState() => TelaLoginState();
 }
 
-
 class TelaLoginState extends State<TelaLogin> {
-
   final usuarioControler = TextEditingController();
   final senhaControler = TextEditingController();
 
-
+  bool _entrando = false;
 
   Future<void> fazerLoign() async {
-    var url = Uri.parse('${ApiConfig.baseUrl}/login/usuario');
-    var resposta = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'usuario': usuarioControler.text, 'senha': senhaControler.text}),
-    );
+    if (_entrando) return;
+    FocusScope.of(context).unfocus();
 
-    if (!mounted) return;
+    setState(() => _entrando = true);
+    try {
+      final dados = await ApiCliente.postJson(
+        Uri.parse('${ApiConfig.baseUrl}/login/usuario'),
+        corpo: {
+          'usuario': usuarioControler.text.trim(),
+          'senha': senhaControler.text,
+        },
+      );
 
-    if (resposta.statusCode == 200) {
-      var dados = jsonDecode(resposta.body);
+      if (!mounted) return;
+
       if (dados['sucesso'] == true) {
-        final cpf = dados['cpf'];
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Login realizado com sucesso!')));
-
-        Navigator.push(
+        final cpf = dados['cpf']?.toString() ?? '';
+        final nome = dados['nome']?.toString() ?? usuarioControler.text.trim();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login realizado com sucesso!')),
+        );
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => TelaInicial(usuario: usuarioControler.text, cpf: cpf),
+            builder: (context) => TelaInicial(usuario: nome, cpf: cpf),
           ),
         );
+      } else {
+        _avisar(dados['mensagem']?.toString() ?? 'Usuário ou senha incorretos.');
       }
-    } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Usuário ou senha incorretos')));
+    } on ApiException catch (e) {
+      ApiCliente.logar(e, StackTrace.current);
+      if (!mounted) return;
+      _avisar(
+        e.statusCode == 401
+            ? 'Usuário ou senha incorretos.'
+            : '${e.mensagem}\nEndereço usado: ${ApiConfig.baseUrl}',
+      );
+    } catch (e, s) {
+      ApiCliente.logar(e, s);
+      if (!mounted) return;
+      _avisar('Não foi possível entrar. Tente novamente.');
+    } finally {
+      if (mounted) setState(() => _entrando = false);
     }
+  }
+
+  void _avisar(String texto) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(texto),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -65,9 +87,7 @@ class TelaLoginState extends State<TelaLogin> {
   }
 
   @override
-
-  void dispose(){
-
+  void dispose() {
     usuarioControler.dispose();
     senhaControler.dispose();
     super.dispose();
@@ -93,6 +113,7 @@ class TelaLoginState extends State<TelaLogin> {
                 child: TextField(
                   controller: usuarioControler,
                   obscureText: false,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Usuário",
@@ -105,6 +126,8 @@ class TelaLoginState extends State<TelaLogin> {
                 child: TextField(
                   controller: senhaControler,
                   obscureText: true,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => fazerLoign(),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: "Senha",
@@ -113,27 +136,34 @@ class TelaLoginState extends State<TelaLogin> {
               ),
               SizedBox(height: 20),
               FilledButton(
-                onPressed: () {
-                  if (usuarioControler.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Por favor, insira um usuário válido.'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                    return;
-                  }
-                  fazerLoign();
-                },
+                onPressed: _entrando
+                    ? null
+                    : () {
+                        if (usuarioControler.text.trim().isEmpty) {
+                          _avisar('Por favor, insira um usuário válido.');
+                          return;
+                        }
+                        if (senhaControler.text.isEmpty) {
+                          _avisar('Por favor, insira a senha.');
+                          return;
+                        }
+                        fazerLoign();
+                      },
                 style: ButtonStyle(
                   backgroundColor: WidgetStatePropertyAll<Color>(
                     const Color.fromARGB(255, 26, 58, 27),
                   ),
                 ),
-                child: Text(
-                  'Entrar',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: _entrando
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        'Entrar',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
               SizedBox(height: 20),
               TextButton(

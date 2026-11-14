@@ -1,10 +1,8 @@
-import 'dart:convert';
-
 import 'package:flutter_application_1/telas/tela_login.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../config/api_config.dart';
+import '../servicos/api_cliente.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
@@ -23,39 +21,56 @@ String endereco = '';
 String usuario = '';
 String senha = '';
 
-Future<void> cadastrarUsuario() async {
-  var url = Uri.parse('${ApiConfig.baseUrl}/usuario');
-  var resposta = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'nome': nome,
-      'cpf': cpf,
-      'email': email,
-      'telefone': telefone,
-      'endereco': endereco,
-      'usuario': usuario,
-      'senha': senha,
-    }),
-  );
-
-  if (!mounted) return;
-
-  if (resposta.statusCode == 201 || resposta.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Usuario cadastrado com sucesso!')),
+Future<bool> cadastrarUsuario() async {
+  try {
+    final dados = await ApiCliente.postJson(
+      Uri.parse('${ApiConfig.baseUrl}/usuario'),
+      corpo: {
+        'nome': nome.trim(),
+        'cpf': cpf.trim(),
+        'email': email.trim(),
+        'telefone': telefone.trim(),
+        'endereco': endereco.trim(),
+        'usuario': usuario.trim(),
+        'senha': senha,
+      },
     );
-    nome = '';
-    cpf = '';
-    email = '';
-    telefone = '';
-    endereco = '';
-    usuario = '';
-    senha = '';
-  } else {
+
+    if (!mounted) return false;
+
+    if (dados['sucesso'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Usuário cadastrado com sucesso!')),
+      );
+      nome = '';
+      cpf = '';
+      email = '';
+      telefone = '';
+      endereco = '';
+      usuario = '';
+      senha = '';
+      return true;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(dados['mensagem']?.toString() ?? 'Erro ao cadastrar usuário'),
+      ),
+    );
+    return false;
+  } on ApiException catch (e) {
+    ApiCliente.logar(e, StackTrace.current);
+    if (!mounted) return false;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.mensagem)),
+    );
+    return false;
+  } catch (e, s) {
+    ApiCliente.logar(e, s);
+    if (!mounted) return false;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Erro ao cadastrar usuário')),
     );
+    return false;
   }
 }
   @override
@@ -175,8 +190,22 @@ Future<void> cadastrarUsuario() async {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FilledButton(
-                    onPressed: () {
-                      cadastrarUsuario();
+                    onPressed: () async {
+                      if (nome.trim().isEmpty ||
+                          cpf.trim().isEmpty ||
+                          usuario.trim().isEmpty ||
+                          senha.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Preencha nome, CPF, usuário e senha.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      final ok = await cadastrarUsuario();
+                      if (!ok || !context.mounted) return;
                       Navigator.pop(context);
                     },
                     style: ButtonStyle(
