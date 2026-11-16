@@ -25,16 +25,39 @@ Future<void> enviarAvaliacao(BuildContext context, int servicoId, int nota) asyn
         const SnackBar(content: Text('Obrigado pela sua avaliação!')),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao enviar (${response.statusCode}). Tente novamente.')),
+      // RF06: mensagem de erro COM opcao de nova tentativa
+      _mostrarErroComRetry(
+        context,
+        'Erro ao enviar (${response.statusCode}).',
+        () => enviarAvaliacao(context, servicoId, nota),
       );
     }
   } catch (e) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro de conexão: $e')),
+    // RNF04: falha de conexao tratada sem fechar o app
+    _mostrarErroComRetry(
+      context,
+      'Erro de conexão. Verifique sua internet.',
+      () => enviarAvaliacao(context, servicoId, nota),
     );
   }
+}
+
+/// Mostra a mensagem de erro com o botao "Tentar novamente" (RF06).
+void _mostrarErroComRetry(
+    BuildContext context, String mensagem, VoidCallback aoTentar) {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(mensagem),
+      duration: const Duration(seconds: 6),
+      action: SnackBarAction(
+        label: 'Tentar novamente',
+        onPressed: aoTentar,
+      ),
+    ),
+  );
 }
 
 void mostrarPopupAvaliacao(BuildContext context, int servicoId) {
