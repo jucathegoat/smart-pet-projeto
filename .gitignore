@@ -53,3 +53,6 @@ flutter.env
 **/.env
 **/target/
 .env-dev
+
+# artefatos de build do Android
+android/build/
