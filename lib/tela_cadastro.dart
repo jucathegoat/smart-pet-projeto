@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/tela_login.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'config/app_config.dart';
 
 class TelaCadastro extends StatefulWidget {
   const TelaCadastro({super.key});
@@ -13,292 +12,213 @@ class TelaCadastro extends StatefulWidget {
 }
 
 class _TelaCadastroState extends State<TelaCadastro> {
+  final _formKey = GlobalKey<FormState>();
 
-String nome = '';
-String cpf = '';
-String email = '';
-String telefone = '';
-String endereco = '';
-String usuario = '';
-String senha = '';
-String statusConta = 'ativo';
+  final nomeCtrl = TextEditingController();
+  final cpfCtrl = TextEditingController();
+  final emailCtrl = TextEditingController();
+  final telefoneCtrl = TextEditingController();
+  final enderecoCtrl = TextEditingController();
+  final usuarioCtrl = TextEditingController();
+  final senhaCtrl = TextEditingController();
 
-String? erroNome;
-String? erroCpf;
-String? erroEmail;
-String? erroTelefone;
-String? erroEndereco;
-String? erroUsuario;
-String? erroSenha;
+  bool salvando = false;
 
-
-bool validarCPF(String cpf) {
-  cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-
-  if (cpf.length != 11) return false;
-
-  if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) {
-    return false;
-  }
-
-  int soma = 0;
-  for (int i = 0; i < 9; i++) {
-    soma += int.parse(cpf[i]) * (10 - i);
-  }
-
-  int resto = soma % 11;
-  int digito1 = resto < 2 ? 0 : 11 - resto;
-
-  if (int.parse(cpf[9]) != digito1) {
-    return false;
-  }
-
-  soma = 0;
-  for (int i = 0; i < 10; i++) {
-    soma += int.parse(cpf[i]) * (11 - i);
-  }
-
-  resto = soma % 11;
-  int digito2 = resto < 2 ? 0 : 11 - resto;
-
-  return int.parse(cpf[10]) == digito2;
-}
-
-
-Future<void> cadastrarUsuario() async {
-  var url = Uri.parse('http://localhost:8080/usuario');
-  var resposta = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      'nome': nome,
-      'cpf': cpf.replaceAll('.', ''),
-      'email': email,
-      'telefone':telefone,
-      'endereco': endereco,
-      'usuario': usuario,
-      'senha': senha,
-      'status_conta':statusConta
-    }),
+  final cpfFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
   );
 
-  if (!mounted) return;
+  final telefoneFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
-  if (resposta.statusCode == 201 || resposta.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Usuario cadastrado com sucesso!')),
-    );
-    nome = '';
-    cpf = '';
-    email = '';
-    telefone = '';
-    endereco = '';
-    usuario = '';
-    senha = '';
-    
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Erro ao cadastrar usuário')),
-    );
+  bool validarCPF(String cpf) {
+    cpf = cpf.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cpf.length != 11) return false;
+    if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) return false;
+
+    int soma = 0;
+    for (int i = 0; i < 9; i++) {
+      soma += int.parse(cpf[i]) * (10 - i);
+    }
+    int resto = soma % 11;
+    int digito1 = resto < 2 ? 0 : 11 - resto;
+    if (int.parse(cpf[9]) != digito1) return false;
+
+    soma = 0;
+    for (int i = 0; i < 10; i++) {
+      soma += int.parse(cpf[i]) * (11 - i);
+    }
+    resto = soma % 11;
+    int digito2 = resto < 2 ? 0 : 11 - resto;
+    return int.parse(cpf[10]) == digito2;
   }
-}
+
+  Future<void> cadastrarUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final cpfLimpo = cpfCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    setState(() {
+      salvando = true;
+    });
+
+    try {
+      // Pré-validação de CPF conforme RF04
+      final validarUrl = Uri.parse('${AppConfig.baseUrl}/api/clientes/validar/$cpfLimpo');
+      final validacaoResp = await http.get(validarUrl).timeout(AppConfig.timeout);
+      if (validacaoResp.statusCode == 200) {
+        final valData = jsonDecode(utf8.decode(validacaoResp.bodyBytes));
+        if (valData['situacao'] == 'bloqueado' || valData['bloqueado'] == true) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red.shade800,
+              content: Text('CPF Bloqueado: ${valData['motivo'] ?? 'Procure a administração.'}'),
+            ),
+          );
+          return;
+        } else if (valData['situacao'] == 'existe' || valData['existe'] == true) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Este CPF já está cadastrado no sistema.')),
+          );
+          return;
+        }
+      }
+
+      final url = Uri.parse('${AppConfig.baseUrl}/usuario');
+      final resposta = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'nome': nomeCtrl.text.trim(),
+              'cpf': cpfLimpo,
+              'email': emailCtrl.text.trim(),
+              'telefone': telefoneCtrl.text.trim(),
+              'endereco': enderecoCtrl.text.trim(),
+              'usuario': usuarioCtrl.text.trim(),
+              'senha': senhaCtrl.text,
+              'status_conta': 'Ativo',
+            }),
+          )
+          .timeout(AppConfig.timeout);
+
+      if (!mounted) return;
+
+      if (resposta.statusCode == 201 || resposta.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuário cadastrado com sucesso! Faça login.')),
+        );
+        Navigator.pop(context);
+      } else if (resposta.statusCode == 403) {
+        final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade800,
+            content: Text(dados['mensagem'] ?? 'CPF bloqueado pela administração.'),
+          ),
+        );
+      } else {
+        final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(dados['mensagem'] ?? 'Erro ao cadastrar usuário.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Não foi possível conectar ao servidor.')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          salvando = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Cadastro",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text('Cadastro de Tutor', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color.fromARGB(255, 249, 243, 243),
-        centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(34),
+      backgroundColor: const Color.fromARGB(255, 251, 248, 255),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
           child: Column(
             children: [
-              SizedBox(height: 20),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Nome",
-                  hintText: "Digite seu nome completo",
-                  errorText: erroNome,
-                ),
-                    onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty) {
-                      erroNome = null;
-                      nome = value;
-                    } else if (!RegExp(r'^[A-Za-zÀ-ÿ\s]+$').hasMatch(value)) {
-                      erroNome = 'O nome deve conter apenas letras';
-                    } else {
-                      erroNome = null;
-                      nome = value;
-                    }
-                  });
-                },
+              TextFormField(
+                controller: nomeCtrl,
+                decoration: const InputDecoration(labelText: 'Nome Completo *', border: OutlineInputBorder()),
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe seu nome' : null,
               ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "CPF",
-                  hintText: "Digite seu CPF",
-                  errorText: erroCpf,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty){
-                      erroCpf = null;
-                      cpf = value;
-                    }else if (!validarCPF(value)) {
-                      erroCpf = 'CPF inválido, use o formato: 000.000.000-00';
-                    } else {
-                      erroCpf = null;
-                      cpf = value;
-                    }
-                  });
-                },
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: cpfCtrl,
+                inputFormatters: [cpfFormatter],
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'CPF *', border: OutlineInputBorder()),
+                validator: (v) => validarCPF(v ?? '') ? null : 'CPF inválido',
               ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Email",
-                  hintText: "Digite seu email",
-                  errorText: erroEmail,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty) {
-                      erroEmail = null;
-                      email = value;
-                    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                      erroEmail = 'Email inválido';
-                    } else {
-                      erroEmail = null;
-                      email = value;
-                    }
-                  });
-                },
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'E-mail *', border: OutlineInputBorder()),
+                validator: (v) => (v == null || !v.contains('@')) ? 'E-mail inválido' : null,
               ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Telefone",
-                  hintText: "(xx) xxxxx-xxxx",
-                  errorText: erroTelefone,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    if (value.isEmpty) {
-                      erroTelefone = null;
-                      telefone = value;
-                    } else if (!RegExp(r'^\(\d{2}\) \d{4,5}-\d{4}$').hasMatch(value)) {
-                      erroTelefone = 'Telefone inválido, use o formato: (xx) xxxxx-xxxx';
-                    } else {
-                      erroTelefone = null;
-                      telefone = value;
-                    }
-                  });
-                },
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: telefoneCtrl,
+                inputFormatters: [telefoneFormatter],
+                keyboardType: TextInputType.phone,
+                decoration: const InputDecoration(labelText: 'Telefone', border: OutlineInputBorder()),
               ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Endereço",
-                  hintText: "Digite seu endereço",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    endereco = value;
-                  });
-                },
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: enderecoCtrl,
+                decoration: const InputDecoration(labelText: 'Endereço', border: OutlineInputBorder()),
               ),
-              SizedBox(height: 10),
-              TextField(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Usuario",
-                  hintText: "como deseja ser chamado",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    usuario = value;
-                  });
-                },
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: usuarioCtrl,
+                decoration: const InputDecoration(labelText: 'Nome de Usuário *', border: OutlineInputBorder()),
+                validator: (v) => (v == null || v.trim().length < 3) ? 'Mínimo 3 caracteres' : null,
               ),
-              SizedBox(height: 10),
-              TextField(
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: senhaCtrl,
                 obscureText: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Senha",
-                  hintText: "crie uma senha",
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    senha = value;
-                  });
-                },
+                decoration: const InputDecoration(labelText: 'Senha *', border: OutlineInputBorder()),
+                validator: (v) => (v == null || v.length < 4) ? 'Mínimo 4 caracteres' : null,
               ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FilledButton(
-                    onPressed: () async{
-                      if (nome.isEmpty || cpf.isEmpty || email.isEmpty || telefone.isEmpty || endereco.isEmpty || usuario.isEmpty || senha.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Por favor, preencha todos os campos.')),
-                        );
-                        return;
-                      }
-                     await cadastrarUsuario();
-                      Navigator.pop(context);
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        const Color.fromARGB(255, 26, 58, 27),
-                      ),
-                    ),
-                    child: Text(
-                      'Cadastrar',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                  SizedBox(width: 10),
-                  FilledButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TelaLogin(),
+                  onPressed: salvando ? null : cadastrarUsuario,
+                  child: salvando
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Concluir Cadastro',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                         ),
-                      );
-                    },
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        const Color.fromARGB(255, 228, 230, 228),
-                      ),
-                    ),
-                    child: Text(
-                      'Voltar',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),

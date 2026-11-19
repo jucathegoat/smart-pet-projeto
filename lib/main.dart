@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-
-import 'tela_agendamento.dart';
 import 'loja.dart';
 import 'tela_pets.dart';
 import 'tela_login.dart';
 import 'tela_avaliacao.dart';
+import 'telas/tela_minha_senha.dart';
+import 'telas/tela_painel_fila.dart';
 
 void main() {
   runApp(const MeuApp());
@@ -17,7 +17,7 @@ class MeuApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Pet Shop Fila Zero',
+      title: 'SmartPet - Gestão & Filas',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
@@ -41,16 +41,34 @@ class _TelaInicialState extends State<TelaInicial> {
   int _selectedIndex = 0;
 
   late final List<Widget> _screens;
+  late final List<String> _titulos;
 
   @override
   void initState() {
     super.initState();
     _screens = [
-      HomeContent(usuario: widget.usuario),
+      HomeContent(
+        usuario: widget.usuario,
+        onNavegarPara: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+      TelaMinhaSenha(cpf: widget.cpf, usuario: widget.usuario),
+      const TelaPainelFila(),
       const TelaLoja(),
-      TelaAgendamento(cpf: widget.cpf),
       TelaPets(cpf: widget.cpf),
-      const TelaAvaliacao(servicoId: 1),
+      const TelaAvaliacao(),
+    ];
+
+    _titulos = [
+      'SmartPet',
+      'Minha Senha & Fila',
+      'Painel da Recepção (TV)',
+      'Loja de Produtos',
+      'Meus Pets',
+      'Avaliação de Serviços',
     ];
   }
 
@@ -60,20 +78,54 @@ class _TelaInicialState extends State<TelaInicial> {
     });
   }
 
+  void _sair() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sair do App?'),
+        content: const Text('Deseja realmente desconectar de sua conta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const TelaLogin()),
+              );
+            },
+            child: const Text('Sair', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Pet Shop Fila Zero",
-          style: TextStyle(
-            fontSize: 20,
+        title: Text(
+          _titulos[_selectedIndex],
+          style: const TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.black87,
           ),
         ),
         backgroundColor: const Color.fromARGB(255, 249, 243, 243),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Desconectar',
+            icon: const Icon(Icons.logout, color: Colors.grey),
+            onPressed: _sair,
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -82,32 +134,37 @@ class _TelaInicialState extends State<TelaInicial> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        indicatorColor: Colors.indigo.withValues(alpha: 0.2),
+        indicatorColor: Colors.indigo.withValues(alpha: 0.18),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(Icons.home, color: Colors.indigo),
             label: "Home",
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart, color: Color.fromARGB(255, 26, 58, 27)),
+            icon: Icon(Icons.confirmation_number_outlined),
+            selectedIcon: Icon(Icons.confirmation_number, color: Colors.indigo),
+            label: "Senha",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.tv_outlined),
+            selectedIcon: Icon(Icons.tv, color: Colors.indigo),
+            label: "Painel TV",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_bag_outlined),
+            selectedIcon: Icon(Icons.shopping_bag, color: Colors.indigo),
             label: "Loja",
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month, color: Color.fromARGB(255, 26, 58, 27)),
-            label: "Agenda",
-          ),
-          NavigationDestination(
             icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(Icons.pets, color: Colors.indigo),
             label: "Pets",
           ),
           NavigationDestination(
             icon: Icon(Icons.star_outline),
-            selectedIcon: Icon(Icons.star, color: Color.fromARGB(255, 26, 58, 27)),
-            label: "Avaliação",
+            selectedIcon: Icon(Icons.star, color: Colors.indigo),
+            label: "Avaliar",
           ),
         ],
         backgroundColor: const Color.fromARGB(255, 249, 243, 243),
@@ -118,57 +175,125 @@ class _TelaInicialState extends State<TelaInicial> {
 
 class HomeContent extends StatelessWidget {
   final String usuario;
-  const HomeContent({super.key, required this.usuario});
+  final void Function(int index) onNavegarPara;
+
+  const HomeContent({
+    super.key,
+    required this.usuario,
+    required this.onNavegarPara,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            "Olá $usuario, seja bem-vindo!",
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            "Acompanhe seus pets, senhas e serviços:",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // ATALHOS RÁPIDOS PARA FILAS E SENHAS
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  "Olá $usuario, seja bem-vindo!",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                child: InkWell(
+                  onTap: () => onNavegarPara(1), // Aba Minha Senha
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.indigo.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.indigo.shade200),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.confirmation_number, color: Colors.indigo, size: 32),
+                        SizedBox(height: 10),
+                        Text(
+                          'Minha Senha',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Ver status e posição',
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
                   ),
-                  softWrap: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: () => onNavegarPara(2), // Aba Painel TV
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1B2E),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.tv, color: Colors.amber, size: 32),
+                        SizedBox(height: 10),
+                        Text(
+                          'Painel TV',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Fila da recepção ao vivo',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
+
+          const SizedBox(height: 24),
           const Text(
-            "O que deseja fazer hoje?",
-            style: TextStyle(
-              fontSize: 15,
-              color: Color.fromARGB(255, 216, 216, 216),
-            ),
+            'Destaques SmartPet',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 25),
+          const SizedBox(height: 12),
           ConstrainedBox(
             constraints: BoxConstraints(
               maxWidth: MediaQuery.sizeOf(context).width - 20,
-              maxHeight: 250,
+              maxHeight: 220,
             ),
             child: CarouselView(
-              itemExtent: 350,
-              backgroundColor: Colors.blueGrey,
+              itemExtent: 320,
+              backgroundColor: Colors.blueGrey.shade100,
               children: [
-                Image.asset("assets/images/banner1.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner2.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner3.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner4.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner5.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner6.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner7.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner8.png", fit: BoxFit.cover),
-                Image.asset("assets/images/banner9.png", fit: BoxFit.cover),
+                Image.asset("assets/images/banner1.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
+                Image.asset("assets/images/banner2.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
+                Image.asset("assets/images/banner3.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
+                Image.asset("assets/images/banner4.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
+                Image.asset("assets/images/banner5.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
               ],
             ),
           ),

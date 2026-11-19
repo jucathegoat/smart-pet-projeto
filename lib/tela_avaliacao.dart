@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'config/app_config.dart';
 
 class TelaAvaliacao extends StatefulWidget {
   final int? servicoId;
@@ -9,7 +10,7 @@ class TelaAvaliacao extends StatefulWidget {
   const TelaAvaliacao({
     super.key,
     this.servicoId,
-    this.urlApi = 'http://localhost:8086/api/avaliacoes',
+    this.urlApi = '${AppConfig.baseUrl}/api/avaliacoes',
   });
 
   @override
@@ -35,27 +36,25 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     });
 
     try {
-      final resposta = await http.get(
-        Uri.parse('${widget.urlApi}/pendentes'),
-      );
+      final resposta = await http
+          .get(Uri.parse('${widget.urlApi}/pendentes'))
+          .timeout(AppConfig.timeout);
 
       if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
+        final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
         setState(() {
           itensParaAvaliar = dados is List ? dados : (dados['itens'] ?? []);
         });
       } else if (resposta.statusCode == 404) {
-        // Se a rota não existir no backend, trata como lista vazia
         setState(() {
           itensParaAvaliar = [];
         });
       } else {
         setState(() {
-          erro = 'Erro ao carregar (${resposta.statusCode}).';
+          erro = 'Erro ao carregar pendências (${resposta.statusCode}).';
         });
       }
     } catch (e) {
-      // Se não houver conexão, não trava a tela com erro grave
       setState(() {
         itensParaAvaliar = [];
       });
@@ -68,17 +67,19 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     }
   }
 
-  // Envia a nota do serviço finalizado
+  // Envia a nota do serviço finalizado (1 = Ruim, 2 = Bom, 3 = Excelente conforme RNF03)
   Future<void> _enviarAvaliacao(int servicoId, int nota) async {
     try {
-      final response = await http.post(
-        Uri.parse(widget.urlApi),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'servico_id': servicoId,
-          'nota': nota,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse(widget.urlApi),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'servico_id': servicoId,
+              'nota': nota,
+            }),
+          )
+          .timeout(AppConfig.timeout);
 
       if (!mounted) return;
 
@@ -86,14 +87,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Obrigado pela sua avaliação!')),
         );
-        carregarItensPendentes(); // Remove o item avaliado da lista
+        carregarItensPendentes();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao enviar (${response.statusCode}). Tente novamente.')),
         );
       }
     } catch (e) {
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro de conexão: $e')),
         );
@@ -104,7 +105,6 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Fundo em tom creme/suave idêntico à Tela de Pets
       backgroundColor: const Color.fromARGB(255, 251, 248, 255),
       body: SafeArea(
         child: Builder(
@@ -131,17 +131,26 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
               );
             }
 
-            // MENSAGEM QUANDO NÃO HOUVER ATENDIMENTOS FINALIZADOS
             if (itensParaAvaliar.isEmpty) {
               return const Center(
-                child: Text(
-                  'Não contem item para avaliar',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.rate_review_outlined, size: 56, color: Colors.grey),
+                      SizedBox(height: 12),
+                      Text(
+                        'Nenhum atendimento pendente para avaliar.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
 
-            // LISTA DE CARDS ESTILIZADOS IGUAL A TELA DE PETS
             return RefreshIndicator(
               onRefresh: carregarItensPendentes,
               child: ListView.builder(
@@ -150,114 +159,74 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                 itemBuilder: (context, index) {
                   final item = itensParaAvaliar[index];
                   final int servicoId = item['id'] ?? item['servico_id'] ?? widget.servicoId ?? 1;
-                  final String nomePet = item['nome_pet'] ?? item['pet'] ?? 'Garfield';
-                  final String servico = item['descricao'] ?? item['servico'] ?? 'Banho e Tosa';
+                  final String nomePet = item['nome_pet'] ?? item['nomePet'] ?? item['pet'] ?? 'Pet';
+                  final String servico = item['descricao'] ?? item['servico'] ?? 'Atendimento';
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 245, 242, 248), // Mesma cor do card dos pets
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // ÃƒÂcone da pata à esquerda
-                            const Icon(
-                              Icons.pets,
-                              color: Color.fromARGB(255, 70, 70, 70),
-                              size: 28,
-                            ),
-                            const SizedBox(width: 16),
-                            // InformaçÃƒÂµes do Chamado / Pet
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    nomePet,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
+                  return Card(
+                    elevation: 1,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.pets, color: Colors.indigo, size: 28),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      nomePet,
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Serviço: $servico',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Status: Concluído',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
+                                    Text('Serviço: $servico', style: TextStyle(color: Colors.grey.shade700)),
+                                    const Text('Status: Finalizado', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1),
-                        ),
-                        const Text(
-                          'Como foi o serviço?',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        // BotÃƒÂµes de Avaliação integrados no próprio Card
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.red.shade50,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                          const Divider(height: 24),
+                          const Text(
+                            'Como você avalia nosso atendimento?',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.red.shade50,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
+                                onPressed: () => _enviarAvaliacao(servicoId, 1),
+                                child: const Text('Ruim (1)', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                               ),
-                              onPressed: () => _enviarAvaliacao(servicoId, 1),
-                              child: const Text('Ruim', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                            ),
-                            TextButton(
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.orange.shade50,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  backgroundColor: Colors.orange.shade50,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
+                                onPressed: () => _enviarAvaliacao(servicoId, 2),
+                                child: Text('Bom (2)', style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold)),
                               ),
-                              onPressed: () => _enviarAvaliacao(servicoId, 2),
-                              child: Text('Bom', style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold)),
-                            ),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
+                                onPressed: () => _enviarAvaliacao(servicoId, 3),
+                                child: const Text('Excelente (3)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
-                              onPressed: () => _enviarAvaliacao(servicoId, 3),
-                              child: const Text('Excelente', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -269,4 +238,3 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     );
   }
 }
-
