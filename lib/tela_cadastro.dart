@@ -208,7 +208,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 height: 48,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: const Color.fromARGB(255, 26, 58, 27),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: salvando ? null : cadastrarUsuario,

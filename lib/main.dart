@@ -19,7 +19,7 @@ class MeuApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SmartPet - Gestão & Filas',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 26, 58, 27)),
         useMaterial3: true,
       ),
       home: const TelaLogin(),
@@ -134,36 +134,36 @@ class _TelaInicialState extends State<TelaInicial> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _onItemTapped,
-        indicatorColor: Colors.indigo.withValues(alpha: 0.18),
+        indicatorColor: const Color.fromARGB(255, 26, 58, 27).withValues(alpha: 0.18),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Colors.indigo),
+            selectedIcon: Icon(Icons.home, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Home",
           ),
           NavigationDestination(
             icon: Icon(Icons.confirmation_number_outlined),
-            selectedIcon: Icon(Icons.confirmation_number, color: Colors.indigo),
+            selectedIcon: Icon(Icons.confirmation_number, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Senha",
           ),
           NavigationDestination(
             icon: Icon(Icons.tv_outlined),
-            selectedIcon: Icon(Icons.tv, color: Colors.indigo),
+            selectedIcon: Icon(Icons.tv, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Painel TV",
           ),
           NavigationDestination(
             icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag, color: Colors.indigo),
+            selectedIcon: Icon(Icons.shopping_bag, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Loja",
           ),
           NavigationDestination(
             icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets, color: Colors.indigo),
+            selectedIcon: Icon(Icons.pets, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Pets",
           ),
           NavigationDestination(
             icon: Icon(Icons.star_outline),
-            selectedIcon: Icon(Icons.star, color: Colors.indigo),
+            selectedIcon: Icon(Icons.star, color: Color.fromARGB(255, 26, 58, 27)),
             label: "Avaliar",
           ),
         ],
@@ -218,14 +218,14 @@ class HomeContent extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.indigo.shade50,
+                      color: const Color.fromARGB(255, 238, 245, 238),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.indigo.shade200),
+                      border: Border.all(color: const Color.fromARGB(255, 180, 210, 180)),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.confirmation_number, color: Colors.indigo, size: 32),
+                        Icon(Icons.confirmation_number, color: Color.fromARGB(255, 26, 58, 27), size: 32),
                         SizedBox(height: 10),
                         Text(
                           'Minha Senha',

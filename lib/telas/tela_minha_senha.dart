@@ -156,10 +156,10 @@ class _TelaMinhaSenhaState extends State<TelaMinhaSenha> {
             const SizedBox(height: 16),
             Card(
               elevation: 0,
-              color: Colors.indigo.shade50,
+              color: const Color.fromARGB(255, 238, 245, 238),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: const ListTile(
-                leading: Icon(Icons.info_outline, color: Colors.indigo),
+                leading: Icon(Icons.info_outline, color: Color.fromARGB(255, 26, 58, 27)),
                 title: Text(
                   'Como funciona a fila?',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -191,11 +191,11 @@ class _TelaMinhaSenhaState extends State<TelaMinhaSenha> {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
-      color: emAtendimento ? const Color(0xFFE8F5E9) : const Color(0xFFE8EAF6),
+      color: emAtendimento ? const Color(0xFFE8F5E9) : const Color.fromARGB(255, 240, 248, 240),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: emAtendimento ? Colors.green : Colors.indigo.shade200,
+          color: emAtendimento ? Colors.green : const Color.fromARGB(255, 180, 215, 180),
           width: 1.5,
         ),
       ),
@@ -210,12 +210,12 @@ class _TelaMinhaSenhaState extends State<TelaMinhaSenha> {
                   label: Text(
                     emAtendimento ? 'EM ATENDIMENTO' : 'AGUARDANDO CHAMADA',
                     style: TextStyle(
-                      color: emAtendimento ? Colors.green.shade900 : Colors.indigo.shade900,
+                      color: emAtendimento ? Colors.green.shade900 : const Color.fromARGB(255, 26, 58, 27),
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
                   ),
-                  backgroundColor: emAtendimento ? Colors.green.shade100 : Colors.indigo.shade100,
+                  backgroundColor: emAtendimento ? Colors.green.shade100 : const Color.fromARGB(255, 215, 235, 215),
                 ),
                 Text(
                   'Pet: ${item.nomePet}',
@@ -233,7 +233,7 @@ class _TelaMinhaSenhaState extends State<TelaMinhaSenha> {
               style: TextStyle(
                 fontSize: 52,
                 fontWeight: FontWeight.bold,
-                color: emAtendimento ? Colors.green.shade800 : Colors.indigo.shade900,
+                color: emAtendimento ? Colors.green.shade800 : const Color.fromARGB(255, 26, 58, 27),
               ),
             ),
             Text(

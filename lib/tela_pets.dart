@@ -125,7 +125,7 @@ class _TelaPetsState extends State<TelaPets> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 251, 248, 255),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.indigo,
+        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Novo Pet', style: TextStyle(color: Colors.white)),
         onPressed: () async {
@@ -207,8 +207,8 @@ class _TelaPetsState extends State<TelaPets> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.indigo.shade50,
-                      child: const Icon(Icons.pets, color: Colors.indigo),
+                      backgroundColor: const Color.fromARGB(255, 26, 58, 27).withValues(alpha: 0.1),
+                      child: const Icon(Icons.pets, color: Color.fromARGB(255, 26, 58, 27)),
                     ),
                     title: Text(
                       nome,
@@ -222,7 +222,7 @@ class _TelaPetsState extends State<TelaPets> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit_outlined, color: Colors.indigo),
+                          icon: const Icon(Icons.edit_outlined, color: Color.fromARGB(255, 26, 58, 27)),
                           onPressed: () async {
                             final double pesoVal = double.tryParse(pet['peso']?.toString() ?? '0') ?? 0.0;
                             final String nDoc = pet['nDocumento']?.toString() ?? pet['n_documento']?.toString() ?? widget.cpf;
