@@ -56,3 +56,8 @@ flutter.env
 
 # artefatos de build do Android
 android/build/
+
+# Segredos e credenciais locais
+.env
+.env.*
+!.env.example
