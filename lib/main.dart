@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'tela_agendamento.dart';
 import 'loja.dart';
 import 'tela_pets.dart';
 import 'tela_login.dart';
@@ -19,7 +21,9 @@ class MeuApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SmartPet - Gestão & Filas',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 26, 58, 27)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 26, 58, 27),
+        ),
         useMaterial3: true,
       ),
       home: const TelaLogin(),
@@ -39,6 +43,7 @@ class TelaInicial extends StatefulWidget {
 
 class _TelaInicialState extends State<TelaInicial> {
   int _selectedIndex = 0;
+  int _navIndex = 0;
 
   late final List<Widget> _screens;
   late final List<String> _titulos;
@@ -52,29 +57,50 @@ class _TelaInicialState extends State<TelaInicial> {
         onNavegarPara: (index) {
           setState(() {
             _selectedIndex = index;
+            _navIndex = 0;
           });
         },
       ),
-      TelaMinhaSenha(cpf: widget.cpf, usuario: widget.usuario),
-      const TelaPainelFila(),
-      const TelaLoja(),
-      TelaPets(cpf: widget.cpf),
-      const TelaAvaliacao(),
+      TelaMinhaSenha(cpf: widget.cpf, usuario: widget.usuario), // 1
+      const TelaPainelFila(), // 2
+      TelaAgendamento(cpf: widget.cpf), // 3
+      const TelaLoja(), // 4
+      TelaPets(cpf: widget.cpf), // 5
+      const TelaAvaliacao(), // 6
     ];
 
     _titulos = [
       'SmartPet',
       'Minha Senha & Fila',
       'Painel da Recepção (TV)',
+      'Agendamento',
       'Loja de Produtos',
       'Meus Pets',
       'Avaliação de Serviços',
     ];
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int navIndex) {
     setState(() {
-      _selectedIndex = index;
+      _navIndex = navIndex;
+
+      switch (navIndex) {
+        case 0:
+          _selectedIndex = 0; // Home
+          break;
+        case 1:
+          _selectedIndex = 4; // Loja
+          break;
+        case 2:
+          _selectedIndex = 3; // Agendamento
+          break;
+        case 3:
+          _selectedIndex = 5; // Pets
+          break;
+        case 4:
+          _selectedIndex = 6; // Avaliar
+          break;
+      }
     });
   }
 
@@ -109,6 +135,7 @@ class _TelaInicialState extends State<TelaInicial> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(
           _titulos[_selectedIndex],
           style: const TextStyle(
@@ -127,43 +154,55 @@ class _TelaInicialState extends State<TelaInicial> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: _navIndex,
         onDestinationSelected: _onItemTapped,
-        indicatorColor: const Color.fromARGB(255, 26, 58, 27).withValues(alpha: 0.18),
+        indicatorColor: const Color.fromARGB(
+          255,
+          26,
+          58,
+          27,
+        ).withValues(alpha: 0.18),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(
+              Icons.home,
+              color: Color.fromARGB(255, 26, 58, 27),
+            ),
             label: "Home",
           ),
           NavigationDestination(
-            icon: Icon(Icons.confirmation_number_outlined),
-            selectedIcon: Icon(Icons.confirmation_number, color: Color.fromARGB(255, 26, 58, 27)),
-            label: "Senha",
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tv_outlined),
-            selectedIcon: Icon(Icons.tv, color: Color.fromARGB(255, 26, 58, 27)),
-            label: "Painel TV",
-          ),
-          NavigationDestination(
             icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(
+              Icons.shopping_bag,
+              color: Color.fromARGB(255, 26, 58, 27),
+            ),
             label: "Loja",
           ),
           NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(
+              Icons.calendar_month,
+              color: Color.fromARGB(255, 26, 58, 27),
+            ),
+            label: "Agendar",
+          ),
+          NavigationDestination(
             icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(
+              Icons.pets,
+              color: Color.fromARGB(255, 26, 58, 27),
+            ),
             label: "Pets",
           ),
           NavigationDestination(
             icon: Icon(Icons.star_outline),
-            selectedIcon: Icon(Icons.star, color: Color.fromARGB(255, 26, 58, 27)),
+            selectedIcon: Icon(
+              Icons.star,
+              color: Color.fromARGB(255, 26, 58, 27),
+            ),
             label: "Avaliar",
           ),
         ],
@@ -201,10 +240,7 @@ class HomeContent extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             "Acompanhe seus pets, senhas e serviços:",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 20),
 
@@ -220,16 +256,25 @@ class HomeContent extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 238, 245, 238),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color.fromARGB(255, 180, 210, 180)),
+                      border: Border.all(
+                        color: const Color.fromARGB(255, 180, 210, 180),
+                      ),
                     ),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.confirmation_number, color: Color.fromARGB(255, 26, 58, 27), size: 32),
+                        Icon(
+                          Icons.confirmation_number,
+                          color: Color.fromARGB(255, 26, 58, 27),
+                          size: 32,
+                        ),
                         SizedBox(height: 10),
                         Text(
                           'Minha Senha',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         SizedBox(height: 2),
                         Text(
@@ -259,7 +304,11 @@ class HomeContent extends StatelessWidget {
                         SizedBox(height: 10),
                         Text(
                           'Painel TV',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                         SizedBox(height: 2),
                         Text(
@@ -289,11 +338,41 @@ class HomeContent extends StatelessWidget {
               itemExtent: 320,
               backgroundColor: Colors.blueGrey.shade100,
               children: [
-                Image.asset("assets/images/banner1.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
-                Image.asset("assets/images/banner2.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
-                Image.asset("assets/images/banner3.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
-                Image.asset("assets/images/banner4.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
-                Image.asset("assets/images/banner5.png", fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.pets, size: 48, color: Colors.indigo))),
+                Image.asset(
+                  "assets/images/banner1.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.pets, size: 48, color: Colors.indigo),
+                  ),
+                ),
+                Image.asset(
+                  "assets/images/banner2.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.pets, size: 48, color: Colors.indigo),
+                  ),
+                ),
+                Image.asset(
+                  "assets/images/banner3.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.pets, size: 48, color: Colors.indigo),
+                  ),
+                ),
+                Image.asset(
+                  "assets/images/banner4.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.pets, size: 48, color: Colors.indigo),
+                  ),
+                ),
+                Image.asset(
+                  "assets/images/banner5.png",
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Center(
+                    child: Icon(Icons.pets, size: 48, color: Colors.indigo),
+                  ),
+                ),
               ],
             ),
           ),

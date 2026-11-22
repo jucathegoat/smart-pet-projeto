@@ -4,7 +4,13 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class TelaEdicaoPet extends StatefulWidget {
-  const TelaEdicaoPet({super.key, required this.codigoPet, required this.nDocumento, required this.peso, required this.idade});
+  const TelaEdicaoPet({
+    super.key,
+    required this.codigoPet,
+    required this.nDocumento,
+    required this.peso,
+    required this.idade,
+  });
 
   final int codigoPet;
   final String nDocumento;
@@ -28,8 +34,8 @@ class _TelaEdicaoPetState extends State<TelaEdicaoPet> {
     idadeControler.text = widget.idade.toString();
   }
 
-String? erroPeso;
-String? erroIdade;
+  String? erroPeso;
+  String? erroIdade;
 
   @override
   void dispose() {
@@ -40,7 +46,7 @@ String? erroIdade;
   }
 
   Future<void> atualizarPet() async {
-    var url = Uri.parse('http://localhost:8080/atualizar/pet');
+    var url = Uri.parse('http://localhost:8080/api/pets/${widget.codigoPet}');
     var resposta = await http.put(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -63,10 +69,39 @@ String? erroIdade;
     }
   }
 
+  InputDecoration campo({
+    required String label,
+    required String hint,
+    required IconData icon,
+    String? erro,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      errorText: erro,
+      prefixIcon: Icon(icon, color: const Color.fromARGB(255, 26, 58, 27)),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: const OutlineInputBorder(
+        borderRadius: BorderRadius.all(Radius.circular(14)),
+        borderSide: BorderSide(
+          color: Color.fromARGB(255, 26, 58, 27),
+          width: 2,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text(
           "Edição de Pet",
           style: TextStyle(
@@ -84,85 +119,137 @@ String? erroIdade;
           child: Column(
             children: [
               SizedBox(height: 20),
-              TextField(
-                controller: nDocumentoControler,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Nº Documento",
-                  hintText: "Digite o nº Documento do seu pet",
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 238, 245, 238),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.pets,
+                      size: 36,
+                      color: Color.fromARGB(255, 26, 58, 27),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Edite as informações do seu pet abaixo. ",
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: pesoControler,
-                onChanged: (value){
-                  setState(() {
-                    if (value.isEmpty) {
-                      erroPeso = null;
-                    } else if (!RegExp(r'^\d+(\.\d+)?$').hasMatch(value)) {
-                      erroPeso = 'O peso deve ser um número válido';
-                    } else {
-                      erroPeso = null;
-                    }
-                  }); 
-                },                
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Peso",
-                  hintText: "Digite o peso do seu pet",
-                  errorText: erroPeso,
+              const SizedBox(height: 20),
+              Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: idadeControler,
-                onChanged: (value){
-                  setState(() {
-                    if (value.isEmpty) {
-                      erroIdade = null;
-                    } else if (!RegExp(r'^\d+$').hasMatch(value)) {
-                      erroIdade = 'A idade deve ser um número inteiro';
-                    } else {
-                      erroIdade = null;
-                    }
-                  }); 
-                },
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Idade",
-                  hintText: "Digite a idade do seu pet",
-                  errorText: erroIdade,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: nDocumentoControler,
+                        decoration: campo(
+                          label: "Documento",
+                          hint: "Número do documento",
+                          icon: Icons.badge,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        controller: pesoControler,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isEmpty) {
+                              erroPeso = null;
+                            } else if (!RegExp(r'^\d+(\.\d+)?$')
+                                .hasMatch(value)) {
+                              erroPeso = 'O peso deve ser um número válido';
+                            } else {
+                              erroPeso = null;
+                            }
+                          });
+                        },
+                        decoration: campo(
+                          label: "Peso",
+                          hint: "Ex: 8.5 kg",
+                          icon: Icons.monitor_weight,
+                          erro: erroPeso,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      TextField(
+                        controller: idadeControler,
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isEmpty) {
+                              erroIdade = null;
+                            } else if (!RegExp(r'^\d+$').hasMatch(value)) {
+                              erroIdade = 'A idade deve ser um número inteiro';
+                            } else {
+                              erroIdade = null;
+                            }
+                          });
+                        },
+                        keyboardType: TextInputType.number,
+                        decoration: campo(
+                          label: "Idade",
+                          hint: "Ex: 3 anos",
+                          icon: Icons.cake,
+                          erro: erroIdade,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 26, 58, 27),
+                  SizedBox(
+                    width: 150,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await atualizarPet();
+
+                        if (!mounted) return;
+
+                        Navigator.pop(context, true);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      icon: const Icon(Icons.save),
+                      label: const Text("Atualizar"),
                     ),
-                    onPressed: () async {
-                      await atualizarPet();
-                      Navigator.pop(context,true);
-                    },
-                    child: const Text("Atualizar"),
                   ),
-                  SizedBox(width: 10),
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 228, 230, 228),
+                  SizedBox(
+                    width: 120,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.black87,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      child: const Text("Voltar"),
                     ),
-                    onPressed: () {
-                      // Lógica para voltar à tela anterior
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Voltar"),
                   ),
                 ],
               ),
