@@ -9,7 +9,6 @@ class TelaNovoAgendamento extends StatefulWidget {
 
   final String cpf;
 
-
   @override
   State<TelaNovoAgendamento> createState() => _TelaNovoAgendamentoState();
 }
@@ -22,7 +21,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
   final horaController = TextEditingController();
   List<dynamic> listaServicos = [];
   List<dynamic> listaPets = [];
-
+  bool salvando = false;
   final String baseUrl = 'http://localhost:8080';
 
   @override
@@ -34,9 +33,12 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
 
   Future<void> listarServicos() async {
     try {
-      final resposta = await http.get(Uri.parse('$baseUrl/servicos'));
+      final resposta = await http.get(Uri.parse('$baseUrl/api/servicos'));
       if (resposta.statusCode == 200) {
         final dados = jsonDecode(resposta.body);
+
+        if (!mounted) return;
+
         setState(() {
           listaServicos = dados['servicos'] ?? [];
         });
@@ -46,43 +48,39 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
     }
   }
 
-  Future<void> salvarAgendamento() async {
+  Future<bool> salvarAgendamento() async {
     if (servicoSelecionado == null ||
-        petSelecionado!.isEmpty ||
+        petSelecionado == null ||
         dataController.text.isEmpty ||
         horaController.text.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Preencha todos os campos!")));
-      return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Preencha todos os campos")));
+      return false;
     }
 
     final agendamento = {
       "cpf": widget.cpf,
-      "servico": int.parse(servicoSelecionado!),
-      "pet": int.parse(petSelecionado!),
-      "data": dataController.text,
-      "hora": horaController.text,
-      "status": "Em andamento",
+      "codigo_pet": int.parse(petSelecionado!),
+      "codigo_servico": int.parse(servicoSelecionado!),
+      "data_agendamento": dataController.text,
+      "hora_agendamento": "${horaController.text}:00",
     };
 
     try {
       final resposta = await http.post(
-        Uri.parse('$baseUrl/novo/agendamento'),
+        Uri.parse('$baseUrl/api/agendamentos'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(agendamento),
       );
 
-      if (resposta.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Agendamento realizado com sucesso!")),
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Erro ao salvar agendamento.")));
+      if (resposta.statusCode == 200) {
+        return true;
       }
-    } catch (e) {
-      print("Erro: $e");
+
+      return false;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -118,129 +116,257 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
 
   Future<void> listarPets() async {
     try {
-      final resposta = await http.get(Uri.parse('${baseUrl}/tutor/${widget.cpf}/pets'));
+      final resposta = await http.get(
+        Uri.parse('${baseUrl}/tutor/${widget.cpf}/pets'),
+      );
       if (resposta.statusCode == 200) {
         final dados = jsonDecode(resposta.body);
+
+        if (!mounted) return;
+
         setState(() {
-          listaPets =  dados['pets'] ?? [];
+          listaPets = dados['pets'] ?? [];
         });
       }
     } catch (e) {
-      print("Erro ao carregar serviços: $e");
+      print("Erro ao carregar pets: $e");
     }
   }
+
+  InputDecoration _decoracaoCampo({
+    required String label,
+    required IconData icone,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icone, color: const Color.fromARGB(255, 26, 58, 27)),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: Color.fromARGB(255, 26, 58, 27),
+          width: 2,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Novo Agendamento",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        backgroundColor: const Color.fromARGB(255, 249, 243, 243),
+        automaticallyImplyLeading: false,
+        elevation: 0,
         centerTitle: true,
+        backgroundColor: const Color.fromARGB(255, 249, 243, 243),
+        title: const Text(
+          "Novo Agendamento",
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(34),
           child: Column(
             children: [
-              SizedBox(height: 30),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Serviço",
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 238, 245, 238),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                items: listaServicos.map<DropdownMenuItem<String>>((servico) {
-                  return DropdownMenuItem<String>(
-                    value: servico['codigoServico'].toString(),
-                    child: Text(servico['nome']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    servicoSelecionado = value;
-                  });
-                },
-              ),
-              SizedBox(height: 10),
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Pet",
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_month,
+                      color: Color.fromARGB(255, 26, 58, 27),
+                      size: 32,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Escolha o pet, o serviço, a data e o horário para realizar o agendamento.",
+                      ),
+                    ),
+                  ],
                 ),
-                items: listaPets.map<DropdownMenuItem<String>>((pets) {
-                  return DropdownMenuItem<String>(
-                    value: pets['codigoPet'].toString(),
-                    child: Text(pets['nome']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    petSelecionado = value;
-                  });
-                },
               ),
-              SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Data",
-                  hintText: "Selecione a data",
-                  suffixIcon: Icon(Icons.calendar_today),
+
+              const SizedBox(height: 20),
+
+              Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                controller: dataController,
-                onTap: selecionarData,
-              ),
-              SizedBox(height: 10),
-              TextField(
-                readOnly: true,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Hora",
-                  hintText: "Selecione a hora",
-                  suffixIcon: Icon(Icons.access_time),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: servicoSelecionado,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          labelText: "Serviço",
+                          prefixIcon: const Icon(Icons.medical_services),
+                        ),
+                        items: listaServicos.map<DropdownMenuItem<String>>((
+                          servico,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: servico['codigo'].toString(),
+                            child: Text(servico['nome']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            servicoSelecionado = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: petSelecionado,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          labelText: "Pet",
+                          prefixIcon: const Icon(Icons.pets),
+                        ),
+                        items: listaPets.map<DropdownMenuItem<String>>((pet) {
+                          return DropdownMenuItem<String>(
+                            value: pet['id'].toString(),
+                            child: Text(pet['nome']),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            petSelecionado = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextField(
+                        controller: dataController,
+                        readOnly: true,
+                        onTap: selecionarData,
+                        decoration: InputDecoration(
+                          labelText: "Data",
+                          prefixIcon: const Icon(Icons.calendar_today),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextField(
+                        controller: horaController,
+                        readOnly: true,
+                        onTap: selecionarHora,
+                        decoration: InputDecoration(
+                          labelText: "Horário",
+                          prefixIcon: const Icon(Icons.access_time),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                controller: horaController,
-                onTap: selecionarHora,
               ),
-              SizedBox(height: 20),
+
+              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 26, 58, 27),
+                  SizedBox(
+                    width: 160,
+                    height: 48,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      icon: salvando
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.check_circle),
+                      label: Text(salvando ? "Salvando..." : "Agendar"),
+                      onPressed: salvando
+                          ? null
+                          : () async {
+                              setState(() {
+                                salvando = true;
+                              });
+
+                              final sucesso = await salvarAgendamento();
+
+                              if (!mounted) return;
+
+                              setState(() {
+                                salvando = false;
+                              });
+
+                              if (sucesso) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Agendamento criado com sucesso!",
+                                    ),
+                                  ),
+                                );
+
+                                Navigator.pop(context, true);
+                              }
+                            },
                     ),
-                    onPressed: () async {
-                      await salvarAgendamento();
-                      if (!mounted) return;
-                      Navigator.pop(context, true);
-                     
-                    
-                    },
-                    child: Text("Agendar"),
                   ),
-                  SizedBox(width: 10),
-                  FilledButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll<Color>(
-                        Color.fromARGB(255, 228, 230, 228),
+
+                  const SizedBox(width: 12),
+
+                  SizedBox(
+                    width: 120,
+                    height: 48,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey.shade300,
+                        foregroundColor: Colors.black87,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(
-                      "Cancelar",
-                      style: TextStyle(color: Colors.black),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Cancelar"),
                     ),
                   ),
                 ],

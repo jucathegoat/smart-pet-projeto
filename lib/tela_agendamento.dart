@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/tela_novo_agendamento.dart';
 import 'package:http/http.dart' as http;
@@ -36,29 +35,23 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     });
 
     try {
-      final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
       final resposta = await http.get(
-        Uri.parse('$baseUrl/api/fila/cliente/$cpfLimpo'),
+        Uri.parse('$baseUrl/api/agendamentos/cliente/${widget.cpf}'),
       );
 
       if (resposta.statusCode == 200) {
-        final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+        final dados = jsonDecode(resposta.body);
+
         if (!mounted) return;
 
         setState(() {
-          agendamentos = dados is List ? dados : (dados['agendamentos'] ?? []);
+          agendamentos = dados as List<dynamic>;
         });
       } else {
         if (!mounted) return;
-        setState(() {
-          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
-        });
-      }
-    } catch (e) {
 
         setState(() {
-          erro =
-              'Erro ao consultar os agendamentos (${resposta.statusCode}).';
+          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
         });
       }
     } catch (e) {
@@ -77,43 +70,42 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
   }
 
   Future<void> cancelarAgendamentos(int idagenda) async {
-    try {
-      final url = Uri.parse('$baseUrl/atualizar/agendamento');
+  try {
+    final url = Uri.parse(
+      '$baseUrl/api/agendamentos/$idagenda/cancelar',
+    );
 
-      final resposta = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'idagenda': idagenda,
-          'status': 'Cancelado',
-        }),
-      );
+    final resposta = await http.put(url);
 
-      if (resposta.statusCode == 200) {
-        await carregarAgendamentos();
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível cancelar o agendamento.'),
-          ),
-        );
-      }
-    } catch (e) {
+    if (resposta.statusCode == 200) {
+      await carregarAgendamentos();
+    } else {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Erro ao conectar com o servidor.'),
+          content: Text(
+            'Não foi possível cancelar o agendamento.',
+          ),
         ),
       );
     }
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Erro ao conectar ao servidor.',
+        ),
+      ),
+    );
   }
+}
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'em andamento':
+      case 'agendado':
         return Colors.orange;
       case 'concluído':
         return Colors.green;
@@ -126,7 +118,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
 
   Color _statusBackground(String status) {
     switch (status.toLowerCase()) {
-      case 'em andamento':
+      case 'agendado':
         return Colors.orange.shade100;
       case 'concluído':
         return Colors.green.shade100;
@@ -159,9 +151,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
         children: const [
           SizedBox(
             height: 400,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           ),
         ],
       );
@@ -234,13 +224,10 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.pets,
-                          color: Colors.indigo,
-                        ),
+                        const Icon(Icons.pets, color: Colors.indigo),
                         const SizedBox(width: 8),
                         Text(
-                          agendamento['nome_pet'] ?? 'Sem nome',
+                          agendamento['nomePet'] ?? 'Sem nome',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -275,39 +262,31 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                 const SizedBox(height: 8),
 
                 Text(
-                  "🛁 Especialidade: ${agendamento['nome_servico'] ?? 'Não informada'}",
+                  "🛁 Especialidade: ${agendamento['servico'] ?? 'Não informada'}",
+                ),
+                Text("📂 Categoria: ${agendamento['categoria']}"),
+                Text(
+                  "📅 Data: ${agendamento['data_agendamento'] ?? 'Não informada'}",
                 ),
 
                 Text(
-                  "📅 Data: ${agendamento['data'] ?? 'Não informada'}",
-                ),
-
-                Text(
-                  "⏰ Hora: ${agendamento['hora'] ?? 'Não informada'}",
+                  "⏰ Hora: ${agendamento['hora_agendamento'] ?? 'Não informada'}",
                 ),
 
                 const SizedBox(height: 12),
 
                 // Botão de cancelar
-                if (status.toLowerCase() == 'em andamento')
+               if (status.toLowerCase() == 'agendado')
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          26,
-                          58,
-                          27,
-                        ),
+                        backgroundColor: const Color.fromARGB(255, 26, 58, 27),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      icon: const Icon(
-                        Icons.cancel,
-                        color: Colors.white,
-                      ),
+                      icon: const Icon(Icons.cancel, color: Colors.white),
                       label: const Text(
                         "Cancelar",
                         style: TextStyle(color: Colors.white),
@@ -339,19 +318,14 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                                   ),
                                   child: const Text(
                                     "Sim",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                   onPressed: () async {
                                     Navigator.of(context).pop();
 
-                                    final idagenda =
-                                        agendamento['idagenda'];
+                                    final idagenda = agendamento['id'];
 
-                                    await cancelarAgendamentos(
-                                      idagenda,
-                                    );
+                                    await cancelarAgendamentos(idagenda);
                                   },
                                 ),
                               ],
@@ -382,16 +356,10 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
       floatingActionButton: FloatingActionButton(
         onPressed: abrirNovoAgendamento,
         shape: const CircleBorder(
-          side: BorderSide(
-            color: Colors.white,
-            width: 2.0,
-          ),
+          side: BorderSide(color: Colors.white, width: 2.0),
         ),
         backgroundColor: const Color.fromARGB(255, 26, 58, 27),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }

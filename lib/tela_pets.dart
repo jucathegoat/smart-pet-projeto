@@ -225,7 +225,7 @@ class _TelaPetsState extends State<TelaPets> {
                           icon: const Icon(Icons.edit_outlined, color: Color.fromARGB(255, 26, 58, 27)),
                           onPressed: () async {
                             final double pesoVal = double.tryParse(pet['peso']?.toString() ?? '0') ?? 0.0;
-                            final String nDoc = pet['nDocumento']?.toString() ?? pet['n_documento']?.toString() ?? widget.cpf;
+                            final String nDoc = pet['nDocumento']?.toString() ?? pet['n_documento']?.toString() ?? '';
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
