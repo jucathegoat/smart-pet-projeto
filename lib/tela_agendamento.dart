@@ -36,28 +36,25 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     });
 
     try {
+      final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
       final resposta = await http.get(
-        Uri.parse('$baseUrl/agendamentos/${widget.cpf}'),
+        Uri.parse('$baseUrl/api/fila/cliente/$cpfLimpo'),
       );
 
       if (resposta.statusCode == 200) {
-        final dados = jsonDecode(resposta.body);
+        final dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+        if (!mounted) return;
 
-        if (dados['sucesso'] == true) {
-          if (!mounted) return;
-
-          setState(() {
-            agendamentos = dados['agendamentos'] ?? [];
-          });
-        } else {
-          if (!mounted) return;
-
-          setState(() {
-            erro = 'Não foi possível carregar seus agendamentos.';
-          });
-        }
+        setState(() {
+          agendamentos = dados is List ? dados : (dados['agendamentos'] ?? []);
+        });
       } else {
         if (!mounted) return;
+        setState(() {
+          erro = 'Erro ao consultar os agendamentos (${resposta.statusCode}).';
+        });
+      }
+    } catch (e) {
 
         setState(() {
           erro =
