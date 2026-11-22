@@ -5,11 +5,13 @@ import 'config/app_config.dart';
 
 class TelaAvaliacao extends StatefulWidget {
   final int? servicoId;
+  final String? cpf;
   final String urlApi;
 
   const TelaAvaliacao({
     super.key,
     this.servicoId,
+    this.cpf,
     this.urlApi = '${AppConfig.baseUrl}/api/avaliacoes',
   });
 
@@ -36,8 +38,11 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     });
 
     try {
+      final cpfParam = widget.cpf != null && widget.cpf!.isNotEmpty
+          ? '?cpf=${widget.cpf!.replaceAll(RegExp(r"[^0-9A-Za-z]"), "")}'
+          : '';
       final resposta = await http
-          .get(Uri.parse('${widget.urlApi}/pendentes'))
+          .get(Uri.parse('${widget.urlApi}/pendentes$cpfParam'))
           .timeout(AppConfig.timeout);
 
       if (resposta.statusCode == 200) {

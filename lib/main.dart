@@ -66,7 +66,7 @@ class _TelaInicialState extends State<TelaInicial> {
       TelaAgendamento(cpf: widget.cpf), // 3
       const TelaLoja(), // 4
       TelaPets(cpf: widget.cpf), // 5
-      const TelaAvaliacao(), // 6
+      TelaAvaliacao(cpf: widget.cpf), // 6
     ];
 
     _titulos = [
