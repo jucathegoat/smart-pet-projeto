@@ -35,8 +35,9 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     });
 
     try {
+      final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
       final resposta = await http.get(
-        Uri.parse('$baseUrl/api/agendamentos/cliente/${widget.cpf}'),
+        Uri.parse('$baseUrl/api/fila/cliente/$cpfLimpo'),
       );
 
       if (resposta.statusCode == 200) {

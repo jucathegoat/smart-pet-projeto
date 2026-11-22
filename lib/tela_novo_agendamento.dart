@@ -59,22 +59,40 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
       return false;
     }
 
-    final agendamento = {
-      "cpf": widget.cpf,
-      "codigo_pet": int.parse(petSelecionado!),
-      "codigo_servico": int.parse(servicoSelecionado!),
-      "data_agendamento": dataController.text,
-      "hora_agendamento": "${horaController.text}:00",
-    };
+    int idPet = int.tryParse(petSelecionado ?? '') ?? 1;
+    int idServico = int.tryParse(servicoSelecionado ?? '') ?? 1;
+
+    // Busca o nome do pet e servico selecionados
+    String nomePet = 'Pet';
+    for (var p in listaPets) {
+      if ((p['id'] ?? p['codigo_pet'])?.toString() == petSelecionado) {
+        nomePet = p['nome']?.toString() ?? 'Pet';
+        break;
+      }
+    }
+
+    String nomeServico = 'Atendimento Geral';
+    for (var s in listaServicos) {
+      if ((s['codigo'] ?? s['codigo_servico'] ?? s['id'])?.toString() == servicoSelecionado) {
+        nomeServico = s['nome']?.toString() ?? 'Atendimento Geral';
+        break;
+      }
+    }
 
     try {
       final resposta = await http.post(
-        Uri.parse('$baseUrl/api/agendamentos'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(agendamento),
+        Uri.parse('$baseUrl/api/fila/adicionar'),
+        headers: {"Content-Type": "application/json; charset=utf-8"},
+        body: jsonEncode({
+          "cliente": widget.cpf,
+          "pet": nomePet,
+          "servico": nomeServico,
+          "idPet": idPet.toString(),
+          "idServico": idServico.toString(),
+        }),
       );
 
-      if (resposta.statusCode == 200) {
+      if (resposta.statusCode == 200 || resposta.statusCode == 201) {
         return true;
       }
 
