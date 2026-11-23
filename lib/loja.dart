@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'config/app_config.dart';
-import 'tela_avaliacao.dart';
 
 class TelaLoja extends StatefulWidget {
   const TelaLoja({super.key, required this.cpf});
@@ -101,29 +100,10 @@ class _TelaLojaState extends State<TelaLoja> {
 
       await _refresh();
       if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Compra concluída'),
-          content: Text('${produto['nome']} foi comprado. Quer avaliar sua compra agora?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Depois'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => TelaAvaliacao(cpf: widget.cpf)),
-                );
-              },
-              child: const Text('Avaliar compra'),
-            ),
-          ],
-        ),
-      );
+      final idVenda = int.tryParse(dados['id_venda']?.toString() ?? '');
+      if (idVenda != null) {
+        await _avaliarCompra(idVenda, produto['nome']?.toString() ?? 'Produto');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -133,6 +113,105 @@ class _TelaLojaState extends State<TelaLoja> {
     } finally {
       if (mounted) setState(() => _comprandoId = null);
     }
+  }
+
+  Future<void> _avaliarCompra(int idVenda, String nomeProduto) async {
+    final comentarioController = TextEditingController();
+    var nota = 3;
+    var enviando = false;
+    String? erro;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Avalie sua compra'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(nomeProduto),
+                const SizedBox(height: 12),
+                const Text('Como foi sua experiência?'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [1, 2, 3].map((valor) => ChoiceChip(
+                    label: Text(['Ruim', 'Bom', 'Excelente'][valor - 1]),
+                    selected: nota == valor,
+                    onSelected: enviando ? null : (_) => setDialogState(() => nota = valor),
+                  )).toList(),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: comentarioController,
+                  maxLength: 255,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Comentário (opcional)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                if (erro != null)
+                  Text(erro!, style: const TextStyle(color: Colors.red)),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: enviando ? null : () => Navigator.pop(dialogContext),
+              child: const Text('Agora não'),
+            ),
+            ElevatedButton(
+              onPressed: enviando
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        enviando = true;
+                        erro = null;
+                      });
+                      try {
+                        final resposta = await http.post(
+                          Uri.parse('${AppConfig.baseUrl}/api/avaliacoes'),
+                          headers: {'Content-Type': 'application/json; charset=utf-8'},
+                          body: jsonEncode({
+                            'servico_id': 1000 + idVenda,
+                            'nota': nota,
+                            'comentario': comentarioController.text.trim(),
+                            'nome_pet': 'Compra na Loja',
+                            'descricao': nomeProduto,
+                          }),
+                        ).timeout(AppConfig.timeout);
+                        final dynamic dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+                        if (resposta.statusCode >= 200 && resposta.statusCode < 300 && dados['sucesso'] == true) {
+                          if (dialogContext.mounted) Navigator.pop(dialogContext);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Obrigado pela avaliação da compra!')),
+                            );
+                          }
+                        } else {
+                          setDialogState(() {
+                            enviando = false;
+                            erro = dados['mensagem']?.toString() ?? 'Não foi possível enviar a avaliação.';
+                          });
+                        }
+                      } catch (_) {
+                        setDialogState(() {
+                          enviando = false;
+                          erro = 'Falha ao conectar para enviar a avaliação.';
+                        });
+                      }
+                    },
+              child: enviando ? const Text('Enviando…') : const Text('Enviar avaliação'),
+            ),
+          ],
+        ),
+      ),
+    );
+    comentarioController.dispose();
   }
 
   @override

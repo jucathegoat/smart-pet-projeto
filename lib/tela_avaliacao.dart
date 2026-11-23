@@ -82,7 +82,6 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
               'servico_id': servicoId,
               'nota': nota,
               'comentario': _comentarios[servicoId]?.text.trim() ?? '',
-              'cpf': widget.cpf.replaceAll(RegExp(r'[^0-9]'), ''),
             }),
           )
           .timeout(AppConfig.timeout);
