@@ -1,17 +1,46 @@
-# flutter_application_1
+# SmartPet — Aplicativo Flutter
 
-A new Flutter project.
+Aplicativo mobile do SmartPet para tutores e equipe da recepção. O app acessa o backend Spring Boot para consultar pets, entrar na fila, avaliar serviços e comprar produtos.
 
-## Getting Started
+## Estrutura
 
-This project is a starting point for a Flutter application.
+```text
+smart-pet-projeto/
+├── lib/main.dart                 # inicialização, login e navegação principal
+├── lib/config/app_config.dart    # endereço base e timeout da API
+├── lib/tela_*.dart               # telas de pets, loja, fila e avaliações
+├── lib/telas/                    # telas adicionais da recepção e do tutor
+├── lib/servicos/                 # acesso e modelos de serviços
+├── assets/                       # imagens e recursos visuais
+├── android/, ios/, web/, windows/ # destinos Flutter
+└── pubspec.yaml                  # dependências e configuração Flutter
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Requisitos
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+- Flutter instalado e disponível no `PATH`
+- Backend SmartPet em execução
+- Para celular físico, dispositivo conectado e endereço do backend acessível pela rede
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Executar no Windows
+
+Abra PowerShell nesta pasta:
+
+```powershell
+flutter pub get
+flutter run -d windows
+```
+
+Para conferir os dispositivos disponíveis, use `flutter devices`; então execute `flutter run -d <id-do-dispositivo>`.
+
+## Conexão com o backend
+
+O endereço padrão está em `lib/config/app_config.dart` e aponta para `http://localhost:8080`, adequado quando o backend roda na mesma máquina. Em um celular físico, altere `baseUrl` para o endereço IP da máquina que está executando o backend, mantendo a porta 8080.
+
+## Principais fluxos
+
+- **Pets:** cadastro, listagem, edição e remoção
+- **Agendamento e fila:** seleção de pet e serviço, acompanhamento e cancelamento
+- **Loja:** consulta de produtos e compra
+- **Avaliações:** nota e comentário para atendimentos e compras
+- **Recepção:** painel ao vivo da fila
