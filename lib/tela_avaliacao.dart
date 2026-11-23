@@ -5,13 +5,13 @@ import 'config/app_config.dart';
 
 class TelaAvaliacao extends StatefulWidget {
   final int? servicoId;
-  final String? cpf;
   final String urlApi;
+  final String cpf;
 
   const TelaAvaliacao({
     super.key,
+    required this.cpf,
     this.servicoId,
-    this.cpf,
     this.urlApi = '${AppConfig.baseUrl}/api/avaliacoes',
   });
 
@@ -21,6 +21,7 @@ class TelaAvaliacao extends StatefulWidget {
 
 class _TelaAvaliacaoState extends State<TelaAvaliacao> {
   List<dynamic> itensParaAvaliar = [];
+  final Map<int, TextEditingController> _comentarios = {};
   bool carregando = true;
   String? erro;
 
@@ -38,11 +39,9 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
     });
 
     try {
-      final cpfParam = widget.cpf != null && widget.cpf!.isNotEmpty
-          ? '?cpf=${widget.cpf!.replaceAll(RegExp(r"[^0-9A-Za-z]"), "")}'
-          : '';
+      final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9]'), '');
       final resposta = await http
-          .get(Uri.parse('${widget.urlApi}/pendentes$cpfParam'))
+          .get(Uri.parse('${widget.urlApi}/pendentes?cpf=$cpfLimpo'))
           .timeout(AppConfig.timeout);
 
       if (resposta.statusCode == 200) {
@@ -82,6 +81,8 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
             body: jsonEncode({
               'servico_id': servicoId,
               'nota': nota,
+              'comentario': _comentarios[servicoId]?.text.trim() ?? '',
+              'cpf': widget.cpf.replaceAll(RegExp(r'[^0-9]'), ''),
             }),
           )
           .timeout(AppConfig.timeout);
@@ -105,6 +106,14 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _comentarios.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -146,7 +155,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                       Icon(Icons.rate_review_outlined, size: 56, color: Colors.grey),
                       SizedBox(height: 12),
                       Text(
-                        'Nenhum atendimento pendente para avaliar.',
+                        'Nenhuma compra ou atendimento pendente para avaliar.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 16, color: Colors.grey),
                       ),
@@ -166,6 +175,12 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                   final int servicoId = item['id'] ?? item['servico_id'] ?? widget.servicoId ?? 1;
                   final String nomePet = item['nome_pet'] ?? item['nomePet'] ?? item['pet'] ?? 'Pet';
                   final String servico = item['descricao'] ?? item['servico'] ?? 'Atendimento';
+                  final bool compra = item['tipo'] == 'compra';
+                  final petId = item['pet_id'];
+                  final comentarioController = _comentarios.putIfAbsent(
+                    servicoId,
+                    TextEditingController.new,
+                  );
 
                   return Card(
                     elevation: 1,
@@ -178,7 +193,7 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.pets, color: Colors.indigo, size: 28),
+                              Icon(compra ? Icons.shopping_bag_outlined : Icons.pets, color: Colors.indigo, size: 28),
                               const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
@@ -188,8 +203,13 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                                       nomePet,
                                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                     ),
+                                    if (!compra && petId != null)
+                                      Text(
+                                        'Pet #$petId',
+                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                      ),
                                     Text('Serviço: $servico', style: TextStyle(color: Colors.grey.shade700)),
-                                    const Text('Status: Finalizado', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
+                                    Text(compra ? 'Status: Compra concluída' : 'Status: Finalizado', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600)),
                                   ],
                                 ),
                               ),
@@ -201,6 +221,17 @@ class _TelaAvaliacaoState extends State<TelaAvaliacao> {
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 12),
+                          TextField(
+                            controller: comentarioController,
+                            maxLength: 255,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              labelText: 'Comentário (opcional)',
+                              hintText: 'Conte como foi sua experiência',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [

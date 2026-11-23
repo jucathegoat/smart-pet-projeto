@@ -64,7 +64,7 @@ class _TelaInicialState extends State<TelaInicial> {
       TelaMinhaSenha(cpf: widget.cpf, usuario: widget.usuario), // 1
       const TelaPainelFila(), // 2
       TelaAgendamento(cpf: widget.cpf), // 3
-      const TelaLoja(), // 4
+      TelaLoja(cpf: widget.cpf), // 4
       TelaPets(cpf: widget.cpf), // 5
       TelaAvaliacao(cpf: widget.cpf), // 6
     ];
@@ -83,6 +83,13 @@ class _TelaInicialState extends State<TelaInicial> {
   void _onItemTapped(int navIndex) {
     setState(() {
       _navIndex = navIndex;
+
+      if (navIndex == 4) {
+        _screens[6] = TelaAvaliacao(
+          key: UniqueKey(),
+          cpf: widget.cpf,
+        );
+      }
 
       switch (navIndex) {
         case 0:

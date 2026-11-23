@@ -84,6 +84,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
         Uri.parse('$baseUrl/api/fila/adicionar'),
         headers: {"Content-Type": "application/json; charset=utf-8"},
         body: jsonEncode({
+          "cpf": widget.cpf.replaceAll(RegExp(r'[^0-9]'), ''),
           "cliente": widget.cpf,
           "pet": nomePet,
           "servico": nomeServico,

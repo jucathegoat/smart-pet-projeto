@@ -207,6 +207,14 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
         final agendamento = agendamentos[index];
 
         final status = agendamento['status'] ?? '';
+        String textoOuPadrao(dynamic valor, [String padrao = 'Não informada']) {
+          if (valor == null) return padrao;
+          final texto = valor.toString().trim();
+          if (texto.isEmpty || texto.toLowerCase() == 'null' || texto.toLowerCase() == 'undefined') {
+            return padrao;
+          }
+          return texto;
+        }
 
         return Card(
           elevation: 4,
@@ -228,7 +236,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                         const Icon(Icons.pets, color: Colors.indigo),
                         const SizedBox(width: 8),
                         Text(
-                          agendamento['nomePet'] ?? 'Sem nome',
+                          textoOuPadrao(agendamento['nomePet'], 'Sem nome'),
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -263,15 +271,15 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                 const SizedBox(height: 8),
 
                 Text(
-                  "🛁 Especialidade: ${agendamento['servico'] ?? 'Não informada'}",
+                  "🛁 Especialidade: ${textoOuPadrao(agendamento['servico'])}",
                 ),
-                Text("📂 Categoria: ${agendamento['categoria']}"),
+                Text("📂 Categoria: ${textoOuPadrao(agendamento['categoria'])}"),
                 Text(
-                  "📅 Data: ${agendamento['data_agendamento'] ?? 'Não informada'}",
+                  "📅 Data: ${textoOuPadrao(agendamento['data_agendamento'])}",
                 ),
 
                 Text(
-                  "⏰ Hora: ${agendamento['hora_agendamento'] ?? 'Não informada'}",
+                  "⏰ Hora: ${textoOuPadrao(agendamento['hora_agendamento'])}",
                 ),
 
                 const SizedBox(height: 12),

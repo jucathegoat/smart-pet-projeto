@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'config/app_config.dart';
+import 'tela_avaliacao.dart';
 
 class TelaLoja extends StatefulWidget {
-  const TelaLoja({super.key});
+  const TelaLoja({super.key, required this.cpf});
+
+  final String cpf;
 
   @override
   State<TelaLoja> createState() => _TelaLojaState();
@@ -12,6 +15,7 @@ class TelaLoja extends StatefulWidget {
 
 class _TelaLojaState extends State<TelaLoja> {
   late Future<List<Map<String, dynamic>>> _produtosFuture;
+  int? _comprandoId;
 
   @override
   void initState() {
@@ -67,6 +71,70 @@ class _TelaLojaState extends State<TelaLoja> {
     });
   }
 
+  Future<void> _comprar(Map<String, dynamic> produto) async {
+    final idProduto = int.tryParse(produto['id']?.toString() ?? '');
+    if (idProduto == null || _comprandoId != null) return;
+
+    setState(() => _comprandoId = idProduto);
+    try {
+      final resposta = await http
+          .post(
+            Uri.parse('${AppConfig.baseUrl}/api/vendas'),
+            headers: {'Content-Type': 'application/json; charset=utf-8'},
+            body: jsonEncode({
+              'id_produto': idProduto,
+              'quantidade': 1,
+              'forma_pagamento': 'Pix',
+              'cpf': widget.cpf.replaceAll(RegExp(r'[^0-9]'), ''),
+            }),
+          )
+          .timeout(AppConfig.timeout);
+
+      final dynamic dados = jsonDecode(utf8.decode(resposta.bodyBytes));
+      if (!mounted) return;
+      if (resposta.statusCode < 200 || resposta.statusCode >= 300 || dados['sucesso'] != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(dados['mensagem']?.toString() ?? 'Não foi possível concluir a compra.')),
+        );
+        return;
+      }
+
+      await _refresh();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Compra concluída'),
+          content: Text('${produto['nome']} foi comprado. Quer avaliar sua compra agora?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Depois'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => TelaAvaliacao(cpf: widget.cpf)),
+                );
+              },
+              child: const Text('Avaliar compra'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao comprar: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _comprandoId = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +178,7 @@ class _TelaLojaState extends State<TelaLoja> {
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.72,
+                childAspectRatio: 0.66,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
@@ -165,6 +233,21 @@ class _TelaLojaState extends State<TelaLoja> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _comprandoId == null ? () => _comprar(prod) : null,
+                                icon: _comprandoId == prod['id']
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.shopping_cart_outlined),
+                                label: Text(_comprandoId == prod['id'] ? 'Comprando…' : 'Comprar'),
                               ),
                             ),
                           ],
