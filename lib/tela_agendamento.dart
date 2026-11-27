@@ -35,9 +35,9 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     });
 
     try {
-      final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
+      final cpf = Uri.encodeComponent(widget.cpf);
       final resposta = await http.get(
-        Uri.parse('$baseUrl/api/fila/cliente/$cpfLimpo'),
+        Uri.parse('$baseUrl/api/agendamentos/cliente/$cpf'),
       );
 
       if (resposta.statusCode == 200) {
@@ -216,6 +216,14 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
           return texto;
         }
 
+        String dataFormatada(dynamic valor) {
+          final texto = textoOuPadrao(valor);
+          if (texto == 'Não informada') return texto;
+          final data = DateTime.tryParse(texto);
+          if (data == null) return texto;
+          return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
+        }
+
         return Card(
           elevation: 4,
           shape: RoundedRectangleBorder(
@@ -275,7 +283,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
                 ),
                 Text("📂 Categoria: ${textoOuPadrao(agendamento['categoria'])}"),
                 Text(
-                  "📅 Data: ${textoOuPadrao(agendamento['data_agendamento'])}",
+                  "📅 Data: ${dataFormatada(agendamento['data_agendamento'])}",
                 ),
 
                 Text(
