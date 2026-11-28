@@ -97,7 +97,7 @@ class _TelaPetsState extends State<TelaPets> {
 
     try {
       final resposta = await http
-          .delete(Uri.parse('${AppConfig.baseUrl}/api/pets/$id'))
+          .delete(Uri.parse('${AppConfig.baseUrl}/api/pets/$id?cpf=${widget.cpf.replaceAll(RegExp(r'[^0-9]'), '')}'))
           .timeout(AppConfig.timeout);
 
       if (resposta.statusCode == 200) {
