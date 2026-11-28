@@ -33,10 +33,10 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
       carregando = true;
       erro = null;
     });
-
+    final cpfLimpo = widget.cpf.replaceAll(RegExp(r'[^0-9]'), '');
     try {
       final resposta = await http.get(
-        Uri.parse('$baseUrl/api/agendamentos/cliente/${widget.cpf}'),
+        Uri.parse('$baseUrl/app/agendamentos/cliente/${cpfLimpo}'),
       );
 
       if (resposta.statusCode == 200) {
@@ -107,7 +107,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     switch (status.toLowerCase()) {
       case 'agendado':
         return Colors.orange;
-      case 'concluído':
+      case 'concluido':
         return Colors.green;
       case 'cancelado':
         return Colors.grey;
@@ -120,7 +120,7 @@ class TelaAgendamentoState extends State<TelaAgendamento> {
     switch (status.toLowerCase()) {
       case 'agendado':
         return Colors.orange.shade100;
-      case 'concluído':
+      case 'concluido':
         return Colors.green.shade100;
       case 'cancelado':
         return Colors.grey.shade200;

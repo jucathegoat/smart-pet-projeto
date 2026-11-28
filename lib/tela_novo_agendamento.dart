@@ -69,7 +69,7 @@ class _TelaNovoAgendamentoState extends State<TelaNovoAgendamento> {
 
     try {
       final resposta = await http.post(
-        Uri.parse('$baseUrl/api/agendamentos'),
+        Uri.parse('$baseUrl/app/agendamentos'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(agendamento),
       );
